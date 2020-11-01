@@ -45,6 +45,29 @@ void initialize() {
 	pros::lcd::register_btn1_cb(on_center_button);
 	pros::lcd::register_btn2_cb(on_right_button);
 
+	myChassis =
+	  ChassisControllerBuilder()
+	    .withMotors({1, 2}, {-3, -4})
+	    // Green gearset, 3.75 in wheel diam, 11.5 in wheel track
+	    .withDimensions(AbstractMotor::gearset::green, {{3.75_in, 11.5_in}, imev5GreenTPR})
+	    .build();
+
+	profileController =
+		AsyncMotionProfileControllerBuilder()
+		.withLimits({
+				1.0,
+				2.0,
+				10.0
+		})
+		.withOutput(myChassis)
+		.buildMotionProfileController();
+
+
+
+
+
+
+
 }
 
 /**
@@ -77,15 +100,40 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	pros::Motor left_wheels (1);
-  pros::Motor right_wheels (11, true);
+	// pros::Motor left_wheels (1);
+  // pros::Motor right_wheels (11, true);
 	// if (autoColor == "Red" && front==true) {
 	// 	right_wheels.move_relative(1000, 200);
 	// 	left_wheels.move_relative(1000, 200);
 	//
 	// }
-	right_wheels.move_velocity(50);
-	pros::delay(10000);
+	// right_wheels.move_velocity(50);
+	// pros::delay(10000);
+			motor_move_velocity(9, 200);
+			motor_move_velocity(10, 200);
+
+
+			profileController()->generatePath({
+				{0_ft, 0_ft, 0_deg}
+				{0_ft, 0_ft, 180_deg}
+			}, "A");
+			profileController->setTarget("A");
+			profileController->waitUntilSettled();
+
+			profileController()->generatePath({
+				{0_ft, 0_ft, 180_deg}
+				{4.32_ft, 0.25_ft, 200_deg}
+			}, "B");
+			profileController->setTarget("B");
+			profileController->waitUntilSettled();
+
+			motor_move_velocity(9, 200);
+			motor_move_velocity(10, 200);
+
+
+	}
+
+
 }
 
 /**
