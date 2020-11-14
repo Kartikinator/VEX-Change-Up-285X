@@ -106,7 +106,9 @@ void opcontrol() {
   pros::Motor right_wheels (11, true); // This reverses the motor
 
 	pros::Motor main_intake (9);
-	pros::Motor secondary_intake (10);
+	pros::Motor indexer (10);
+	pros::Motor left_intake (6);
+	pros::Motor right_intake (20);
 
 
 	std::shared_ptr<ChassisController> drive =
@@ -136,11 +138,29 @@ void opcontrol() {
 
 		if (right1.isPressed()) {
 			pros::lcd::set_text(7, "You are holding the button!");
-			main_intake.move_velocity(-100);
-			secondary_intake.move_velocity(-100);
-		} else {
+			main_intake.move_velocity(200);
+			indexer.move_velocity(600);
+			left_intake.move_velocity(-200);
+			right_intake.move_velocity(200);
+
+		}
+		else if (right2.isPressed()) {
+				main_intake.move_velocity(-200);
+				indexer.move_velocity(-600);
+				left_intake.move_velocity(200);
+				right_intake.move_velocity(-200);
+		}
+		else if (button.isPressed()) {
+				main_intake.move_velocity(-200);
+				indexer.move_velocity(600);
+				left_intake.move_velocity(200);
+				right_intake.move_velocity(-200);
+		}
+		else {
 			main_intake.move_velocity(0);
-			secondary_intake.move_velocity(0);
+			indexer.move_velocity(0);
+			left_intake.move_velocity(0);
+			right_intake.move_velocity(0);
 		}
 
 		// if (right2.isPressed()) {
