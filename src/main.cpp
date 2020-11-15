@@ -1,4 +1,5 @@
 #include "main.h"
+#include "../include/init.h"
 
 bool front = false;
 std::string autoColor = "";
@@ -45,6 +46,23 @@ void initialize() {
 	pros::lcd::register_btn1_cb(on_center_button);
 	pros::lcd::register_btn2_cb(on_right_button);
 
+	std::shared_ptr<ChassisController> myChassis =
+	  ChassisControllerBuilder()
+	    .withMotors({1, 2}, {-3, -4})
+	    // Green gearset, 3.75 in wheel diam, 11.5 in wheel track
+	    .withDimensions(AbstractMotor::gearset::green, {{3.75_in, 11.5_in}, imev5GreenTPR})
+	    .build();
+
+	std::shared_ptr<AsyncMotionProfileController> profileController =
+		AsyncMotionProfileControllerBuilder()
+		.withLimits({
+				1.0,
+				2.0,
+				10.0
+		})
+		.withOutput(myChassis)
+		.buildMotionProfileController();
+
 }
 
 /**
@@ -77,15 +95,62 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	pros::Motor left_wheels (1);
-  pros::Motor right_wheels (11, true);
-	// if (autoColor == "Red" && front==true) {
-	// 	right_wheels.move_relative(1000, 200);
-	// 	left_wheels.move_relative(1000, 200);
-	//
-	// }
-	right_wheels.move_velocity(50);
-	pros::delay(10000);
+	std::shared_ptr<ChassisController> chassis = ChassisControllerBuilder()
+	  .withMotors(frontLeftMotorPort, frontRightMotorPort, backRightMotorPort, backLeftMotorPort) //tl, tr, br, bl //  .withMotors(frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor)
+	  .withDimensions(AbstractMotor::gearset::green, {{15_in, 15_in}, imev5GreenTPR})
+	  .build();
+
+	std::shared_ptr<AsyncMotionProfileController> profileController =
+	    AsyncMotionProfileControllerBuilder()
+	    .withLimits({
+	        1.0,
+	        2.0,
+	        10.0
+	    })
+	    .withOutput(chassis)
+	    .buildMotionProfileController();
+
+	// Single Goal Autonomous
+	profileController->moveTo({
+		{0_ft, 0_ft, 0_deg},
+		{3_ft, 0_ft, 0_deg}
+	}, true);
+	profileController->waitUntilSettled(); // Move back from the fence
+
+	profileController->moveTo({
+		{0_ft, 0_ft, 0_deg},
+		{0_ft, 0_ft, -45_deg}
+	});
+	profileController->waitUntilSettled(); // Turn towards the goal
+
+	profileController->moveTo({
+		{0_ft, 0_ft, 0_deg},
+		{4_ft, 0_ft, 0_deg}
+	});
+	profileController->waitUntilSettled(); // Move to the goal
+
+	rollersMotor->move_velocity(-200);
+	indexerMotor->move_velocity(-600);
+
+	pros::delay(2000);
+
+	rollersMotor->move_velocity(0);
+	indexerMotor->move_velocity(0); // Score the ball
+
+
+	// Double Goal Autonomous
+	// Home Row Autonomous
+	// Single Home - Double Mid Row Autonomous
+	// Double Home - Double Mid Row Autonomous
+	// Skills
+
+
+	profileController->generatePath({
+		{0_ft, 0_ft, 0_deg},
+		{0_ft, 0_ft, 180_deg}
+	}, "A");
+
+	profileController->setTarget("A");
 }
 
 /**
@@ -134,7 +199,7 @@ void opcontrol() {
 		pros::lcd::set_text(3, "Right Motor Temperature: " + std::to_string(int(right_wheels.get_temperature())) + " C");
 		pros::lcd::set_text(4, "Battery Temperature: " + std::to_string(int(pros::battery::get_temperature())) + " C");
 		pros::lcd::set_text(5, "Battery Current: " + std::to_string(pros::battery::get_current()));
-		pros::lcd::set_text(6, "Battery Voltage: " + std::to_string(pros::battery::get_voltage()));
+		pros::lcd::set_text(6, "Line Sensor: " + std::to_string(lineSensorOne.get_value());
 
 		if (right1.isPressed()) {
 			pros::lcd::set_text(7, "You are holding the button!");
