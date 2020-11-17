@@ -133,7 +133,36 @@ void autonomous() {
 		right_intake.move_velocity(-200);
 
 
-		// Home Row Skills
+		// Home Row Skills - Blue Center Goal, start one tile to left on divider line
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{1.5_ft, 0_ft, 0_deg}},
+			"Path_1"
+		);
+
+		profileController->setTarget("Path_1", true);
+		profileController->waitUntilSettled();
+
+		drive->turnAngle(90_deg);
+
+		profileController->setTarget("Path_1", true);
+		profileController->waitUntilSettled();
+
+		drive->turnAngle(90_deg);
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{1_ft, 0_ft, 0_deg}},
+			"Path2"
+		);
+		profileController->setTarget("Path2", true);
+		profileController->waitUntilSettled();
+
+		left_intake.move_velocity(200);
+		right_intake.move_velocity(200);
+		main_intake.move_velocity(100);
+		indexer.move_velocity(50);
+
+
 
 }
 
