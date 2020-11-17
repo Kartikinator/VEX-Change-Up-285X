@@ -1,5 +1,17 @@
 #include "main.h"
 
+// MOTOR PORTS
+int DRIVE_FRONT_LEFT = 1;
+int DRIVE_FRONT_RIGHT = 12;
+int DRIVE_BACK_RIGHT = 11;
+int DRIVE_BACK_LEFT = 2;
+
+int INDEXER = 10;
+int MAIN_INTAKE = 9;
+int LEFT_INTAKE = 6;
+int RIGHT_INTAKE = 20;
+
+
 bool front = false;
 std::string autoColor = "";
 
@@ -78,9 +90,11 @@ void competition_initialize() {}
  */
 void autonomous() {
 
+	// Declaring Chassis ---
+
 	std::shared_ptr<ChassisController> drive =
 	    ChassisControllerBuilder()
-	        .withMotors(1, -12, 11, 2)
+	        .withMotors(DRIVE_FRONT_LEFT, -DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
 	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
 	        .build();
 
@@ -94,19 +108,32 @@ void autonomous() {
 		.withOutput(drive)
 		.buildMotionProfileController();
 
+		// Declaring Motors ---
 
+		pros::Motor main_intake (MAIN_INTAKE, true);
+		pros::Motor indexer (INDEXER);
+		pros::Motor left_intake (LEFT_INTAKE);
+		pros::Motor right_intake (RIGHT_INTAKE, true);
+
+		// Release code
 		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg}, //Starting position
-			{3_ft, 0_ft, 0_deg}}, //Next point, 3 feet forward
-			"A" //Profile Name
+			{0_ft, 0_ft, 0_deg},
+			{1_ft, 0_ft, 0_deg}},
+			"Release"
 		);
 
-		profileController->setTarget("A");
+		profileController->setTarget("Release", true);
 		profileController->waitUntilSettled();
-		pros::c::motor_move_velocity(6, 200);
-		pros::c::motor_move_velocity(20, 200);
-		pros::c::motor_move_velocity(9, 200);
-		pros::c::motor_move_velocity(10, 600);
+
+		indexer.move_velocity(50);
+		pros::delay(100);
+		indexer.move_velocity(0);
+
+		left_intake.move_velocity(-200);
+		right_intake.move_velocity(-200);
+
+
+		// Home Row Skills
 
 }
 
@@ -124,19 +151,17 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Motor left_wheels (1);
-  pros::Motor right_wheels (11, true); // This reverses the motor
 
-	pros::Motor main_intake (9);
-	pros::Motor indexer (10);
-	pros::Motor left_intake (6);
-	pros::Motor right_intake (20);
+	pros::Motor main_intake (MAIN_INTAKE);
+	pros::Motor indexer (INDEXER);
+	pros::Motor left_intake (LEFT_INTAKE);
+	pros::Motor right_intake (RIGHT_INTAKE);
 	pros::ADIAnalogIn line_sensor ('A');
 
 
 	std::shared_ptr<ChassisController> drive =
 	    ChassisControllerBuilder()
-	        .withMotors(1, -12, 11, 2)
+	        .withMotors(DRIVE_FRONT_LEFT, -DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
 	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
 	        .build();
 
@@ -156,8 +181,8 @@ void opcontrol() {
 	ControllerButton left1(l1);
 
   while (true) {
-		pros::lcd::set_text(2, "Left Motor Temperature: " + std::to_string(int(left_wheels.get_temperature())) + " C");
-		pros::lcd::set_text(3, "Right Motor Temperature: " + std::to_string(int(right_wheels.get_temperature())) + " C");
+		pros::lcd::set_text(2, "Left Motor Temperature: N/A"); // + std::to_string(int(left_wheels.get_temperature())) + " C");
+		pros::lcd::set_text(3, "Right Motor Temperature: N/A"); // + std::to_string(int(right_wheels.get_temperature())) + " C");
 		pros::lcd::set_text(4, "Battery Temperature: " + std::to_string(int(pros::battery::get_temperature())) + " C");
 		pros::lcd::set_text(5, "Battery Current: " + std::to_string(pros::battery::get_current()));
 		pros::lcd::set_text(6, "Line Sensor: " + std::to_string(line_sensor.get_value()));
@@ -204,9 +229,6 @@ void opcontrol() {
 		// 	secondary_intake.move_velocity(0);
 		// }
 
-
-		left_wheels.set_brake_mode(mode);
-		right_wheels.set_brake_mode(mode);
 
 		drive->getModel()->arcade(controller.getAnalog(ControllerAnalog::leftY),
                             controller.getAnalog(ControllerAnalog::rightX));
