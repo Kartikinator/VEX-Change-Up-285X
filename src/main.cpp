@@ -109,11 +109,12 @@ void opcontrol() {
 	pros::Motor indexer (10);
 	pros::Motor left_intake (6);
 	pros::Motor right_intake (20);
+	pros::ADIAnalogIn line_sensor ('A');
 
 
 	std::shared_ptr<ChassisController> drive =
 	    ChassisControllerBuilder()
-	        .withMotors(1, 11, -12, 2)
+	        .withMotors(1, -12, 11, 2)
 	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
 	        .build();
 
@@ -129,26 +130,34 @@ void opcontrol() {
 	ControllerDigital r2 {9};
 	ControllerButton right2(r2);
 
+	ControllerDigital l1 {DIGITAL_L1};
+	ControllerButton left1(l1);
+
   while (true) {
 		pros::lcd::set_text(2, "Left Motor Temperature: " + std::to_string(int(left_wheels.get_temperature())) + " C");
 		pros::lcd::set_text(3, "Right Motor Temperature: " + std::to_string(int(right_wheels.get_temperature())) + " C");
 		pros::lcd::set_text(4, "Battery Temperature: " + std::to_string(int(pros::battery::get_temperature())) + " C");
 		pros::lcd::set_text(5, "Battery Current: " + std::to_string(pros::battery::get_current()));
-		pros::lcd::set_text(6, "Battery Voltage: " + std::to_string(pros::battery::get_voltage()));
+		pros::lcd::set_text(6, "Line Sensor: " + std::to_string(line_sensor.get_value()));
 
 		if (right1.isPressed()) {
 			pros::lcd::set_text(7, "You are holding the button!");
-			main_intake.move_velocity(200);
-			indexer.move_velocity(600);
-			left_intake.move_velocity(-200);
-			right_intake.move_velocity(200);
+			main_intake.move_velocity(-200);
+			indexer.move_velocity(-600);
+			left_intake.move_velocity(200);
+			right_intake.move_velocity(-200);
 
 		}
 		else if (right2.isPressed()) {
 				main_intake.move_velocity(-200);
-				indexer.move_velocity(-600);
 				left_intake.move_velocity(200);
 				right_intake.move_velocity(-200);
+		}
+		else if (left1.isPressed()) {
+				main_intake.move_velocity(200);
+				indexer.move_velocity(600);
+				left_intake.move_velocity(-200);
+				right_intake.move_velocity(200);
 		}
 		else if (button.isPressed()) {
 				main_intake.move_velocity(-200);
@@ -156,6 +165,7 @@ void opcontrol() {
 				left_intake.move_velocity(200);
 				right_intake.move_velocity(-200);
 		}
+
 		else {
 			main_intake.move_velocity(0);
 			indexer.move_velocity(0);
