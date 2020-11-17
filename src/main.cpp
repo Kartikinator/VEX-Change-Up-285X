@@ -45,29 +45,6 @@ void initialize() {
 	pros::lcd::register_btn1_cb(on_center_button);
 	pros::lcd::register_btn2_cb(on_right_button);
 
-	myChassis =
-	  ChassisControllerBuilder()
-	    .withMotors({1, 2}, {-3, -4})
-	    // Green gearset, 3.75 in wheel diam, 11.5 in wheel track
-	    .withDimensions(AbstractMotor::gearset::green, {{3.75_in, 11.5_in}, imev5GreenTPR})
-	    .build();
-
-	profileController =
-		AsyncMotionProfileControllerBuilder()
-		.withLimits({
-				1.0,
-				2.0,
-				10.0
-		})
-		.withOutput(myChassis)
-		.buildMotionProfileController();
-
-
-
-
-
-
-
 }
 
 /**
@@ -100,39 +77,36 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	// pros::Motor left_wheels (1);
-  // pros::Motor right_wheels (11, true);
-	// if (autoColor == "Red" && front==true) {
-	// 	right_wheels.move_relative(1000, 200);
-	// 	left_wheels.move_relative(1000, 200);
-	//
-	// }
-	// right_wheels.move_velocity(50);
-	// pros::delay(10000);
-			motor_move_velocity(9, 200);
-			motor_move_velocity(10, 200);
+
+	std::shared_ptr<ChassisController> drive =
+	    ChassisControllerBuilder()
+	        .withMotors(1, -12, 11, 2)
+	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+	        .build();
+
+	std::shared_ptr<AsyncMotionProfileController> profileController =
+		AsyncMotionProfileControllerBuilder()
+		.withLimits({
+			1.0,
+			2.0,
+			10.0
+		})
+		.withOutput(drive)
+		.buildMotionProfileController();
 
 
-			profileController()->generatePath({
-				{0_ft, 0_ft, 0_deg}
-				{0_ft, 0_ft, 180_deg}
-			}, "A");
-			profileController->setTarget("A");
-			profileController->waitUntilSettled();
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg}, //Starting position
+			{3_ft, 0_ft, 0_deg}}, //Next point, 3 feet forward
+			"A" //Profile Name
+		);
 
-			profileController()->generatePath({
-				{0_ft, 0_ft, 180_deg}
-				{4.32_ft, 0.25_ft, 200_deg}
-			}, "B");
-			profileController->setTarget("B");
-			profileController->waitUntilSettled();
-
-			motor_move_velocity(9, 200);
-			motor_move_velocity(10, 200);
-
-
-	}
-
+		profileController->setTarget("A");
+		profileController->waitUntilSettled();
+		pros::c::motor_move_velocity(6, 200);
+		pros::c::motor_move_velocity(20, 200);
+		pros::c::motor_move_velocity(9, 200);
+		pros::c::motor_move_velocity(10, 600);
 
 }
 
@@ -154,12 +128,15 @@ void opcontrol() {
   pros::Motor right_wheels (11, true); // This reverses the motor
 
 	pros::Motor main_intake (9);
-	pros::Motor secondary_intake (10);
+	pros::Motor indexer (10);
+	pros::Motor left_intake (6);
+	pros::Motor right_intake (20);
+	pros::ADIAnalogIn line_sensor ('A');
 
 
 	std::shared_ptr<ChassisController> drive =
 	    ChassisControllerBuilder()
-	        .withMotors(1, 11, -12, 2)
+	        .withMotors(1, -12, 11, 2)
 	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
 	        .build();
 
@@ -175,20 +152,47 @@ void opcontrol() {
 	ControllerDigital r2 {9};
 	ControllerButton right2(r2);
 
+	ControllerDigital l1 {DIGITAL_L1};
+	ControllerButton left1(l1);
+
   while (true) {
 		pros::lcd::set_text(2, "Left Motor Temperature: " + std::to_string(int(left_wheels.get_temperature())) + " C");
 		pros::lcd::set_text(3, "Right Motor Temperature: " + std::to_string(int(right_wheels.get_temperature())) + " C");
 		pros::lcd::set_text(4, "Battery Temperature: " + std::to_string(int(pros::battery::get_temperature())) + " C");
 		pros::lcd::set_text(5, "Battery Current: " + std::to_string(pros::battery::get_current()));
-		pros::lcd::set_text(6, "Battery Voltage: " + std::to_string(pros::battery::get_voltage()));
+		pros::lcd::set_text(6, "Line Sensor: " + std::to_string(line_sensor.get_value()));
 
 		if (right1.isPressed()) {
 			pros::lcd::set_text(7, "You are holding the button!");
-			main_intake.move_velocity(-100);
-			secondary_intake.move_velocity(-100);
-		} else {
+			main_intake.move_velocity(-200);
+			indexer.move_velocity(-600);
+			left_intake.move_velocity(200);
+			right_intake.move_velocity(-200);
+
+		}
+		else if (right2.isPressed()) {
+				main_intake.move_velocity(-200);
+				left_intake.move_velocity(200);
+				right_intake.move_velocity(-200);
+		}
+		else if (left1.isPressed()) {
+				main_intake.move_velocity(200);
+				indexer.move_velocity(600);
+				left_intake.move_velocity(-200);
+				right_intake.move_velocity(200);
+		}
+		else if (button.isPressed()) {
+				main_intake.move_velocity(-200);
+				indexer.move_velocity(600);
+				left_intake.move_velocity(200);
+				right_intake.move_velocity(-200);
+		}
+
+		else {
 			main_intake.move_velocity(0);
-			secondary_intake.move_velocity(0);
+			indexer.move_velocity(0);
+			left_intake.move_velocity(0);
+			right_intake.move_velocity(0);
 		}
 
 		// if (right2.isPressed()) {
