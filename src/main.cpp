@@ -3,7 +3,7 @@
 // MOTOR PORTS
 int DRIVE_FRONT_LEFT = 1;
 int DRIVE_FRONT_RIGHT = 12;
-int DRIVE_BACK_RIGHT = -11;
+int DRIVE_BACK_RIGHT = 11;
 int DRIVE_BACK_LEFT = 2;
 
 int INDEXER = 10;
@@ -115,9 +115,6 @@ void autonomous() {
 		pros::Motor left_intake (LEFT_INTAKE);
 		pros::Motor right_intake (RIGHT_INTAKE, true);
 
-		// Declaring IMU ---
-		pros::Imu imu_sensor(6);
-
 		// Release code
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
@@ -125,16 +122,15 @@ void autonomous() {
 			"Release"
 		);
 
-		profileController->setTarget("Release", false);
+		profileController->setTarget("Release", true);
 		profileController->waitUntilSettled();
 
-		//indexer.move_velocity(50);
-		//pros::delay(100);
-		//indexer.move_velocity(0);
+		indexer.move_velocity(50);
+		pros::delay(100);
+		indexer.move_velocity(0);
 
-
-		// left_intake.move_velocity(-200);
-		// right_intake.move_velocity(-200);
+		left_intake.move_velocity(-200);
+		right_intake.move_velocity(-200);
 
 
 		// Home Row Skills - Blue Center Goal, start one tile to left on divider line
@@ -144,28 +140,21 @@ void autonomous() {
 			"Path_1"
 		);
 
-		profileController->setTarget("Path_1");
+		profileController->setTarget("Path_1", true);
 		profileController->waitUntilSettled();
 
-		drive->turnAngle(100_deg);
+		drive->turnAngle(90_deg);
 
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{3_ft, 0_ft, 0_deg}},
-			"Path_2"
-		);
-
-		profileController->setTarget("Path_1");
+		profileController->setTarget("Path_1", true);
 		profileController->waitUntilSettled();
 
-		drive->turnAngle(110_deg);
-
+		drive->turnAngle(90_deg);
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{3_ft, 0_ft, 0_deg}},
-			"Path_3"
+			{1_ft, 0_ft, 0_deg}},
+			"Path2"
 		);
-		profileController->setTarget("Path_3");
+		profileController->setTarget("Path2", true);
 		profileController->waitUntilSettled();
 
 		left_intake.move_velocity(200);
@@ -237,7 +226,8 @@ void opcontrol() {
 		}
 		else if (right2.isPressed()) {
 				main_intake.move_velocity(-200);
-				indexer.move_velocity(-600);
+				left_intake.move_velocity(200);
+				right_intake.move_velocity(-200);
 		}
 		else if (left1.isPressed()) {
 				main_intake.move_velocity(200);
