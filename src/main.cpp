@@ -3,7 +3,7 @@
 // MOTOR PORTS
 int DRIVE_FRONT_LEFT = 1;
 int DRIVE_FRONT_RIGHT = 12;
-int DRIVE_BACK_RIGHT = 11;
+int DRIVE_BACK_RIGHT = -11;
 int DRIVE_BACK_LEFT = 2;
 
 int INDEXER = 10;
@@ -92,11 +92,14 @@ void autonomous() {
 
 	// Declaring Chassis ---
 
-	std::shared_ptr<ChassisController> drive =
-	    ChassisControllerBuilder()
-	        .withMotors(DRIVE_FRONT_LEFT, -DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
-	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
-	        .build();
+	std::shared_ptr<OdomChassisController> drive =
+			ChassisControllerBuilder()
+		    .withMotors(1, 12, -11, 2) // left motor is 1, right motor is 2 (reversed)
+		    // green gearset, 4 inch wheel diameter, 11.5 inch wheelbase
+		    .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+		    .withOdometry() // use the same scales as the chassis (above)
+		    .buildOdometry(); // build an odometry chassis
+
 
 	std::shared_ptr<AsyncMotionProfileController> profileController =
 		AsyncMotionProfileControllerBuilder()
@@ -115,6 +118,9 @@ void autonomous() {
 		pros::Motor left_intake (LEFT_INTAKE);
 		pros::Motor right_intake (RIGHT_INTAKE, true);
 
+		// Declaring IMU ---
+		// auto imuZ = IMU(1);
+
 		// Release code
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
@@ -122,46 +128,29 @@ void autonomous() {
 			"Release"
 		);
 
-		profileController->setTarget("Release", true);
+		profileController->setTarget("Release", false);
 		profileController->waitUntilSettled();
 
-		indexer.move_velocity(50);
-		pros::delay(100);
-		indexer.move_velocity(0);
-
-		left_intake.move_velocity(-200);
-		right_intake.move_velocity(-200);
+		//indexer.move_velocity(50);
+		//pros::delay(100);
+		//indexer.move_velocity(0);
+		// left_intake.move_velocity(-200);
+		// right_intake.move_velocity(-200);
 
 
 		// Home Row Skills - Blue Center Goal, start one tile to left on divider line
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{1.5_ft, 0_ft, 0_deg}},
-			"Path_1"
-		);
 
-		profileController->setTarget("Path_1", true);
-		profileController->waitUntilSettled();
-
-		drive->turnAngle(90_deg);
-
-		profileController->setTarget("Path_1", true);
-		profileController->waitUntilSettled();
-
-		drive->turnAngle(90_deg);
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{1_ft, 0_ft, 0_deg}},
-			"Path2"
-		);
-		profileController->setTarget("Path2", true);
-		profileController->waitUntilSettled();
-
+		drive->setState({0_in, 0_in, 0_deg});
+		drive->driveToPoint({0_ft, 2_ft});
+		drive->turnToAngle(90_deg);
+		drive->driveToPoint({3_ft, 0_ft});
+		drive->turnToAngle(180_deg);
+		drive->driveToPoint({0_ft, 3_ft});
+		drive->waitUntilSettled();
+		main_intake.move_velocity(-200);
+		indexer.move_velocity(-600);
 		left_intake.move_velocity(200);
-		right_intake.move_velocity(200);
-		main_intake.move_velocity(100);
-		indexer.move_velocity(50);
-
+		right_intake.move_velocity(-200);
 
 
 }
@@ -226,8 +215,7 @@ void opcontrol() {
 		}
 		else if (right2.isPressed()) {
 				main_intake.move_velocity(-200);
-				left_intake.move_velocity(200);
-				right_intake.move_velocity(-200);
+				indexer.move_velocity(-600);
 		}
 		else if (left1.isPressed()) {
 				main_intake.move_velocity(200);
