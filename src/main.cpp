@@ -91,47 +91,22 @@ void competition_initialize() {}
 void autonomous() {
 
 	// Declaring Chassis ---
+std::shared_ptr<ChassisController> myChassis =
+	  ChassisControllerBuilder()
+	    .withMotors({1, 2}, {12, -11})
+	    // Green gearset, 4 in wheel diam, 11.5 in wheel track
+	    .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+	    .build();
 
-	std::shared_ptr<OdomChassisController> chassisaut =
-		ChassisControllerBuilder()
-			.withMotors({DRIVE_FRONT_LEFT, DRIVE_BACK_LEFT}, {DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT})
-			.withGains(
-        {0.001, 0, 0.0001}, // Distance controller gains
-        {0.00075, 0.001, 0.00009}, // Turn controller gains //try 0.00075, 0.001, 0.00009
-        {0.001, 0, 0.0001}  // Angle controller gains (helps drive straight)
-    )
-			.withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
-			.withOdometry()
-			.buildOdometry();
-
-	auto motion =
-   ChassisControllerBuilder()
-	 .withMotors({DRIVE_FRONT_LEFT, DRIVE_BACK_LEFT}, {DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT})
-		 .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
-     .withMaxVelocity(100)
-     .build();
-
-	auto profileController =
-	   AsyncMotionProfileControllerBuilder()
-	     .withLimits({
-	       1.0,  //max velocity
-	       2.0,  //max acceleration
-	       10.0  //max jerk
-	     })
-	     .withOutput(motion)
-	     .buildMotionProfileController();
-
-	profileController->generatePath({
-		{0_ft, 0_ft, 0_deg},
-		{0_ft, 3_ft, 0_deg}},
-		"A"
-	);
-
-	profileController->setTarget("A");
-	profileController->waitUntilSettled();
-
-
-
+	std::shared_ptr<AsyncMotionProfileController> profileController =
+	  AsyncMotionProfileControllerBuilder()
+	    .withLimits({
+	      1.0, // Maximum linear velocity of the Chassis in m/s
+	      2.0, // Maximum linear acceleration of the Chassis in m/s/s
+	      10.0 // Maximum linear jerk of the Chassis in m/s/s/s
+	    })
+	    .withOutput(myChassis)
+	    .buildMotionProfileController();
 
 		// Declaring Motors ---
 		pros::Motor TOP_RIGHT (12, true);
@@ -144,6 +119,16 @@ void autonomous() {
 		pros::Motor indexer (INDEXER);
 		pros::Motor left_intake (LEFT_INTAKE);
 		pros::Motor right_intake (RIGHT_INTAKE, true);
+
+		//Path Itself
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{3_ft, 0_ft, 0_deg}},
+			"Straight"
+		);
+
+		profileController->setTarget("Straight");
+		profileController->waitUntilSettled();
 
 
 
