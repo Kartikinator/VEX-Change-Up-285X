@@ -129,15 +129,25 @@ std::shared_ptr<ChassisController> myChassis =
 		pros::Motor left_intake (LEFT_INTAKE);
 		pros::Motor right_intake (RIGHT_INTAKE, true);
 
-		//Path Itself
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{2.75_ft, 0_ft, 0_deg}},
-			"Release"
-		);
 
-		profileController->setTarget("Release", true);
-		profileController->waitUntilSettled();
+		odomchas->setState({0_in, 0_in, 0_deg});
+		odomchas->driveToPoint({3_ft, 0_ft});
+		odomchas->waitUntilSettled();
+		odomchas->turnToAngle(30_deg);
+
+
+/*
+		//Path Itself
+		//profileController->generatePath({
+			//{0_ft, 0_ft, 0_deg},
+			//{2.75_ft, 0_ft, 0_deg}},
+			//"Release"
+		//);
+
+		// profileController->setTarget("Release", true);
+		// profileController->waitUntilSettled();
+
+		odomchas->driveToPoint({0_ft, 2.75_ft}, true);
 
 		//Release
 		indexer.move_velocity(600);
@@ -162,7 +172,7 @@ std::shared_ptr<ChassisController> myChassis =
 		//End T1
 
 		//Straight 2
-		//Straight 2
+
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
 			{2.75_ft, 0_ft, 0_deg}},
@@ -171,20 +181,25 @@ std::shared_ptr<ChassisController> myChassis =
 
 		profileController->setTarget("Straight2");
 		profileController->waitUntilSettled();
+		*/
 
-		main_intake.move_velocity(200);
+		// odomchas->driveToPoint({0_ft, 2.75_ft});
 
-		pros::delay(1000);
+		//main_intake.move_velocity(200);
 
-		indexer.move_velocity(0);
-		main_intake.move_velocity(0);
+		//pros::delay(1000);
+
+		//indexer.move_velocity(0);
+		//main_intake.move_velocity(0);
+
 
 
 
 
 }
 
-/**
+
+/*
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
  * the Field Management System or the VEX Competition Switch in the operator
