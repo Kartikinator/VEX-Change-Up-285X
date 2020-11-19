@@ -93,7 +93,7 @@ void autonomous() {
 	// Declaring Chassis ---
 std::shared_ptr<ChassisController> myChassis =
 	  ChassisControllerBuilder()
-	    .withMotors({1, 2}, {12, -11})
+	    .withMotors({1, 2}, {12, 11})
 	    // Green gearset, 4 in wheel diam, 11.5 in wheel track
 	    .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
 	    .build();
@@ -107,6 +107,15 @@ std::shared_ptr<ChassisController> myChassis =
 	    })
 	    .withOutput(myChassis)
 	    .buildMotionProfileController();
+
+
+		std::shared_ptr<OdomChassisController> odomchas =
+			ChassisControllerBuilder()
+				.withMotors({1, 2}, {12, 11})
+				.withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+				.withOdometry()
+				.buildOdometry();
+
 
 		// Declaring Motors ---
 		pros::Motor TOP_RIGHT (12, true);
@@ -123,12 +132,52 @@ std::shared_ptr<ChassisController> myChassis =
 		//Path Itself
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{3_ft, 0_ft, 0_deg}},
-			"Straight"
+			{2.75_ft, 0_ft, 0_deg}},
+			"Release"
 		);
 
-		profileController->setTarget("Straight");
+		profileController->setTarget("Release", true);
 		profileController->waitUntilSettled();
+
+		//Release
+		indexer.move_velocity(600);
+
+		left_intake.move_velocity(-200);
+		right_intake.move_velocity(-200);
+
+		//turn 1
+		TOP_RIGHT.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+		TOP_LEFT.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+		BACK_RIGHT.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+		BACK_LEFT.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+		odomchas->turnToAngle(40_deg);
+
+		BACK_LEFT.move_velocity(0);
+		TOP_LEFT.move_velocity(0);
+
+		BACK_RIGHT.move_velocity(0);
+		TOP_RIGHT.move_velocity(0);
+
+		//End T1
+
+		//Straight 2
+		//Straight 2
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{2.75_ft, 0_ft, 0_deg}},
+			"Straight2"
+		);
+
+		profileController->setTarget("Straight2");
+		profileController->waitUntilSettled();
+
+		main_intake.move_velocity(200);
+
+		pros::delay(1000);
+
+		indexer.move_velocity(0);
+		main_intake.move_velocity(0);
 
 
 
