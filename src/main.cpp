@@ -190,8 +190,26 @@ std::shared_ptr<ChassisController> myChassis =
 		right_intake.move_velocity(0);
 
 
+		//Double Goal Begins
+		odomchas->turnToAngle(-100_deg);
 
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{2.75_ft, 0_ft, 0_deg}},
+			"Straight3"
+		);
 
+		profileController->setTarget("Straight3");
+
+		odomchas->turnToAngle(100_deg);
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{2.75_ft, 0_ft, 0_deg}},
+			"Straight4"
+		);
+
+		profileController->setTarget("Straight4");
 
 }
 
