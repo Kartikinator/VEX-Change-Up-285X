@@ -129,29 +129,21 @@ std::shared_ptr<ChassisController> myChassis =
 		pros::Motor left_intake (LEFT_INTAKE);
 		pros::Motor right_intake (RIGHT_INTAKE, true);
 
-
 		odomchas->setState({0_in, 0_in, 0_deg});
-		odomchas->driveToPoint({3_ft, 0_ft});
-		odomchas->waitUntilSettled();
-		odomchas->turnToAngle(30_deg);
 
 
-/*
 		//Path Itself
-		//profileController->generatePath({
-			//{0_ft, 0_ft, 0_deg},
-			//{2.75_ft, 0_ft, 0_deg}},
-			//"Release"
-		//);
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{2.75_ft, 0_ft, 0_deg}},
+			"Release"
+		);
 
-		// profileController->setTarget("Release", true);
-		// profileController->waitUntilSettled();
-
-		odomchas->driveToPoint({0_ft, 2.75_ft}, true);
+		profileController->setTarget("Release", true);
+		profileController->waitUntilSettled();
 
 		//Release
 		indexer.move_velocity(600);
-
 		left_intake.move_velocity(-200);
 		right_intake.move_velocity(-200);
 
@@ -161,7 +153,7 @@ std::shared_ptr<ChassisController> myChassis =
 		BACK_RIGHT.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 		BACK_LEFT.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-		odomchas->turnToAngle(40_deg);
+		odomchas->turnToAngle(50_deg);
 
 		BACK_LEFT.move_velocity(0);
 		TOP_LEFT.move_velocity(0);
@@ -175,22 +167,27 @@ std::shared_ptr<ChassisController> myChassis =
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{2.75_ft, 0_ft, 0_deg}},
+			{3_ft, 0_ft, 0_deg}},
 			"Straight2"
 		);
 
 		profileController->setTarget("Straight2");
 		profileController->waitUntilSettled();
-		*/
 
-		// odomchas->driveToPoint({0_ft, 2.75_ft});
+		main_intake.move_velocity(200);
+		indexer.move_velocity(-200);
 
-		//main_intake.move_velocity(200);
+		pros::delay(1000);
 
-		//pros::delay(1000);
+		indexer.move_velocity(0);
+		main_intake.move_velocity(0);
 
-		//indexer.move_velocity(0);
-		//main_intake.move_velocity(0);
+
+		profileController->setTarget("Straight2", true);
+		profileController->waitUntilSettled();
+
+		left_intake.move_velocity(0);
+		right_intake.move_velocity(0);
 
 
 
@@ -203,7 +200,7 @@ std::shared_ptr<ChassisController> myChassis =
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
  * the Field Management System or the VEX Competition Switch in the operator
- * control mode.
+ * control mode.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
  *
  * If no competition control is connected, this function will run immediately
  * following initialize().
