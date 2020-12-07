@@ -153,7 +153,8 @@ std::shared_ptr<ChassisController> myChassis =
 		BACK_RIGHT.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 		BACK_LEFT.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-		odomchas->turnToAngle(50_deg);
+		odomchas->turnToAngle(-40_deg);
+
 
 		BACK_LEFT.move_velocity(0);
 		TOP_LEFT.move_velocity(0);
@@ -174,8 +175,11 @@ std::shared_ptr<ChassisController> myChassis =
 		profileController->setTarget("Straight2");
 		profileController->waitUntilSettled();
 
+		left_intake.move_velocity(200);
+		right_intake.move_velocity(200);
 		main_intake.move_velocity(200);
 		indexer.move_velocity(-200);
+
 
 		pros::delay(1000);
 
@@ -191,25 +195,17 @@ std::shared_ptr<ChassisController> myChassis =
 
 
 		//Double Goal Begins
-		odomchas->turnToAngle(-100_deg);
+/*
+		odomchas->turnToAngle(70_deg);
 
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{2.75_ft, 0_ft, 0_deg}},
-			"Straight3"
-		);
+		profileController->setTarget("Release");
+		profileController->waitUntilSettled();
 
-		profileController->setTarget("Straight3");
-
-		odomchas->turnToAngle(100_deg);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{2.75_ft, 0_ft, 0_deg}},
-			"Straight4"
-		);
-
-		profileController->setTarget("Straight4");
+		left_intake.move_velocity(200);
+		right_intake.move_velocity(200);
+		main_intake.move_velocity(200);
+		indexer.move_velocity(-200);
+*/
 
 }
 
@@ -257,6 +253,9 @@ void opcontrol() {
 	ControllerDigital l1 {DIGITAL_L1};
 	ControllerButton left1(l1);
 
+	ControllerDigital l2 {DIGITAL_L2};
+	ControllerButton left2(l2);
+
   while (true) {
 		pros::lcd::set_text(2, "Left Motor Temperature: N/A"); // + std::to_string(int(left_wheels.get_temperature())) + " C");
 		pros::lcd::set_text(3, "Right Motor Temperature: N/A"); // + std::to_string(int(right_wheels.get_temperature())) + " C");
@@ -267,26 +266,32 @@ void opcontrol() {
 		if (right1.isPressed()) {
 			pros::lcd::set_text(7, "You are holding the button!");
 			main_intake.move_velocity(-200);
-			indexer.move_velocity(-600);
+			indexer.move_velocity(-200);
 			left_intake.move_velocity(200);
 			right_intake.move_velocity(-200);
 
 		}
 		else if (right2.isPressed()) {
 				main_intake.move_velocity(-200);
-				indexer.move_velocity(-600);
+				indexer.move_velocity(-200);
 		}
 		else if (left1.isPressed()) {
 				main_intake.move_velocity(200);
-				indexer.move_velocity(600);
+				indexer.move_velocity(200);
 				left_intake.move_velocity(-200);
 				right_intake.move_velocity(200);
 		}
 		else if (button.isPressed()) {
 				main_intake.move_velocity(-200);
-				indexer.move_velocity(600);
+				indexer.move_velocity(200);
 				left_intake.move_velocity(200);
 				right_intake.move_velocity(-200);
+		}
+		else if (left2.isPressed()) {
+			indexer.move_velocity(-25);
+			main_intake.move_velocity(-200);
+			left_intake.move_velocity(200);
+			right_intake.move_velocity(-200);
 		}
 
 		else {
