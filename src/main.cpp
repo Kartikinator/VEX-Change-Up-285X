@@ -1,7 +1,7 @@
 #include "main.h"
 
 // MOTOR PORTS
-int DRIVE_FRONT_LEFT = 1;
+int DRIVE_FRONT_LEFT = -1;
 int DRIVE_FRONT_RIGHT = 12;
 int DRIVE_BACK_RIGHT = -11;
 int DRIVE_BACK_LEFT = 2;
@@ -93,7 +93,7 @@ void autonomous() {
 	// Declaring Chassis ---
 std::shared_ptr<ChassisController> myChassis =
 	  ChassisControllerBuilder()
-	    .withMotors({1, 2}, {12, 11})
+	    .withMotors({1, -2}, {12, -11})
 	    // Green gearset, 4 in wheel diam, 11.5 in wheel track
 	    .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
 	    .build();
@@ -238,7 +238,7 @@ void opcontrol() {
 
 	std::shared_ptr<ChassisController> drive =
 	    ChassisControllerBuilder()
-	        .withMotors(DRIVE_FRONT_LEFT, -DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
+	        .withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
 	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
 	        .build();
 
