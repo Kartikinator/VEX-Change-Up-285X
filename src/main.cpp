@@ -1,4 +1,7 @@
 #include "main.h"
+#include "devices.cpp"
+#include "C:\Users\srika_5auwk87\Documents\VCU-285X-AUTONOMOUS\VEX-Change-Up-285X\src\AutonFiles\skills.cpp"
+
 
 // MOTOR PORTS
 int DRIVE_FRONT_LEFT = -1;
@@ -271,7 +274,7 @@ void opcontrol() {
 			right_intake.move_velocity(-200);
 
 		}
-		else if (right2.isPressed()) {
+		else if (button.isPressed()) {
 				main_intake.move_velocity(-200);
 				indexer.move_velocity(-200);
 		}
@@ -281,8 +284,8 @@ void opcontrol() {
 				left_intake.move_velocity(-200);
 				right_intake.move_velocity(200);
 		}
-		else if (button.isPressed()) {
-				main_intake.move_velocity(-200);
+		else if (right2.isPressed()) {
+				main_intake.move_velocity(-100);
 				indexer.move_velocity(200);
 				left_intake.move_velocity(200);
 				right_intake.move_velocity(-200);
