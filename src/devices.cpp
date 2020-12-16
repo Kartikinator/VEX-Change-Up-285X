@@ -1,6 +1,5 @@
 #include "main.h"
 #include "main.cpp"
-#include "C:\Users\srika_5auwk87\Documents\VCU-285X-AUTONOMOUS\VEX-Change-Up-285X\src\AutonFiles\skills.cpp"
 
 // op control drive
 

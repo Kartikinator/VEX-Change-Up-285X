@@ -1,6 +1,6 @@
 #include "main.h"
-#include "devices.cpp"
-#include "C:\Users\srika_5auwk87\Documents\VCU-285X-AUTONOMOUS\VEX-Change-Up-285X\src\AutonFiles\skills.cpp"
+// #include "devices.cpp"
+// #include "C:\Users\srika_5auwk87\Documents\VCU-285X-AUTONOMOUS\VEX-Change-Up-285X\src\AutonFiles\skills.cpp"
 
 
 // MOTOR PORTS
@@ -259,6 +259,8 @@ void opcontrol() {
 	ControllerDigital l2 {DIGITAL_L2};
 	ControllerButton left2(l2);
 
+	bool detected = false;
+
   while (true) {
 		pros::lcd::set_text(2, "Left Motor Temperature: N/A"); // + std::to_string(int(left_wheels.get_temperature())) + " C");
 		pros::lcd::set_text(3, "Right Motor Temperature: N/A"); // + std::to_string(int(right_wheels.get_temperature())) + " C");
@@ -266,13 +268,13 @@ void opcontrol() {
 		pros::lcd::set_text(5, "Battery Current: " + std::to_string(pros::battery::get_current()));
 		pros::lcd::set_text(6, "Line Sensor: " + std::to_string(line_sensor.get_value()));
 
+		if (detected == false) {
+
 		if (right1.isPressed()) {
-			pros::lcd::set_text(7, "You are holding the button!");
 			main_intake.move_velocity(-200);
 			indexer.move_velocity(-200);
-			left_intake.move_velocity(200);
-			right_intake.move_velocity(-200);
-
+			left_intake.move_velocity(0);
+			right_intake.move_velocity(0);
 		}
 		else if (button.isPressed()) {
 				main_intake.move_velocity(-200);
@@ -285,16 +287,21 @@ void opcontrol() {
 				right_intake.move_velocity(200);
 		}
 		else if (right2.isPressed()) {
-				main_intake.move_velocity(-100);
+				main_intake.move_velocity(-200);
 				indexer.move_velocity(200);
 				left_intake.move_velocity(200);
 				right_intake.move_velocity(-200);
 		}
 		else if (left2.isPressed()) {
-			indexer.move_velocity(-25);
-			main_intake.move_velocity(-200);
-			left_intake.move_velocity(200);
-			right_intake.move_velocity(-200);
+		if (line_sensor.get_value() >2600) {
+		main_intake.move_velocity(-100);
+		indexer.move_velocity(-100);
+		left_intake.move_velocity(100);
+		right_intake.move_velocity(-100);
+	} else {
+		main_intake.move_velocity(0);
+		indexer.move_velocity(0);
+	}
 		}
 
 		else {
@@ -303,6 +310,8 @@ void opcontrol() {
 			left_intake.move_velocity(0);
 			right_intake.move_velocity(0);
 		}
+	}
+
 
 		// if (right2.isPressed()) {
 		// 	pros::lcd::set_text(7, "You are holding the button!");
@@ -312,6 +321,7 @@ void opcontrol() {
 		// 	main_intake.move_velocity(0);
 		// 	secondary_intake.move_velocity(0);
 		// }
+
 
 
 		drive->getModel()->arcade(controller.getAnalog(ControllerAnalog::leftY),
