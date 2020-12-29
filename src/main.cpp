@@ -125,9 +125,11 @@ void autonomous() {
 
 		//Straight 1
 
+		odomchas->turnAngle(50_deg);
+
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{1_ft, 0_ft, 0_deg}},
+			{1.5_ft, 0_ft, 0_deg}},
 			"Straight1"
 		);
 
@@ -137,9 +139,15 @@ void autonomous() {
 		left_intake.move_velocity(200);
 		right_intake.move_velocity(200);
 
-		odomchas->turnAngle(-30_deg);
+		odomchas->turnAngle(-60_deg);
 
-		profileController->setTarget("Straight1");
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{2_ft, 0_ft, 0_deg}},
+			"Straight2"
+		);
+
+		profileController->setTarget("Straight2");
 		profileController->waitUntilSettled();
 
 		indexer.move_velocity(-200);
@@ -168,7 +176,7 @@ void autonomous() {
 		profileController->setTarget("Straight2", true);
 		profileController->waitUntilSettled();
 
-		odomchas->turnAngle(-45_deg);
+		odomchas->turnAngle(-30_deg);
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
@@ -176,10 +184,12 @@ void autonomous() {
 			"Straight3"
 		);
 
-		odomchas->turnAngle(45_deg);
-
 		profileController->setTarget("Straight3");
 		profileController->waitUntilSettled();
+
+		odomchas->turnAngle(40_deg);
+
+
 
 		left_intake.move_velocity(200);
 		right_intake.move_velocity(200);
