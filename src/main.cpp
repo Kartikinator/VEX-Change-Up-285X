@@ -581,15 +581,37 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	pros::Motor left_wheels (1);
-  pros::Motor right_wheels (11, true);
-	// if (autoColor == "Red" && front==true) {
-	// 	right_wheels.move_relative(1000, 200);
-	// 	left_wheels.move_relative(1000, 200);
-	//
-	// }
-	right_wheels.move_velocity(50);
-	pros::delay(10000);
+
+	std::shared_ptr<ChassisController> drive =
+	    ChassisControllerBuilder()
+	        .withMotors(1, -12, 11, 2)
+	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+	        .build();
+
+	std::shared_ptr<AsyncMotionProfileController> profileController =
+		AsyncMotionProfileControllerBuilder()
+		.withLimits({
+			1.0,
+			2.0,
+			10.0
+		})
+		.withOutput(drive)
+		.buildMotionProfileController();
+
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg}, //Starting position
+			{3_ft, 0_ft, 0_deg}}, //Next point, 3 feet forward
+			"A" //Profile Name
+		);
+
+		profileController->setTarget("A");
+		profileController->waitUntilSettled();
+		pros::c::motor_move_velocity(6, 200);
+		pros::c::motor_move_velocity(20, 200);
+		pros::c::motor_move_velocity(9, 200);
+		pros::c::motor_move_velocity(10, 600);
+
 }
 
 /**
