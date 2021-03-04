@@ -91,7 +91,22 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+void turn(ADIEncoder encoder, int amount, okapi::MotorGroup left, okapi::MotorGroup right) {
+ 	left.moveVelocity(-200);
+ 	right.moveVelocity(200);
+ }
+
 void autonomous() {
+	pros::Motor main_intake (MAIN_INTAKE, true);
+	pros::Motor indexer (INDEXER);
+	pros::Motor left_intake (LEFT_INTAKE);
+	pros::Motor right_intake (RIGHT_INTAKE, true);
+
+	pros::ADIAnalogIn limit_switch ('B');
+
+	pros::ADIAnalogIn bumper ('C');
+
+	pros::ADIEncoder encoder ('F', 'E');
 
 	// Declaring Chassis ---
 	std::shared_ptr<OdomChassisController> odomchas =
@@ -101,12 +116,13 @@ void autonomous() {
 					.withOdometry()
 	        .buildOdometry();
 
+
 	std::shared_ptr<AsyncMotionProfileController> profileController =
 	  AsyncMotionProfileControllerBuilder()
 	    .withLimits({
 	      1.0, // Maximum linear velocity of the Chassis in m/s
 	      2.0, // Maximum linear acceleration of the Chassis in m/s/s
-	      10.0 // Maximum linear jerk of the Chassis in m/s/s/s
+	      5.0 // Maximum linear jerk of the Chassis in m/s/s/s
 	    })
 	    .withOutput(odomchas)
 	    .buildMotionProfileController();
@@ -117,111 +133,242 @@ void autonomous() {
 		// pros::Motor BACK_RIGHT (11, true);
 		// pros::Motor BACK_LEFT (DRIVE_BACK_LEFT);
 
+		//Drive Wheels
+		// okapi::MotorGroup left({DRIVE_FRONT_LEFT, DRIVE_BACK_LEFT});
+		// okapi::MotorGroup right({DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT});
 
-		pros::Motor main_intake (MAIN_INTAKE, true);
-		pros::Motor indexer (INDEXER);
-		pros::Motor left_intake (LEFT_INTAKE);
-		pros::Motor right_intake (RIGHT_INTAKE, true);
-
-		//Straight 1
-
-		odomchas->turnAngle(50_deg);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{1.5_ft, 0_ft, 0_deg}},
-			"Straight1"
-		);
-
-		profileController->setTarget("Straight1");
-		profileController->waitUntilSettled();
-
-		left_intake.move_velocity(200);
-		right_intake.move_velocity(200);
-
-		odomchas->turnAngle(-60_deg);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{2_ft, 0_ft, 0_deg}},
-			"Straight2"
-		);
-
-		profileController->setTarget("Straight2");
-		profileController->waitUntilSettled();
-
-		indexer.move_velocity(-200);
-
-		pros::delay(1500);
-
+		indexer.move_velocity(200);
+		pros::delay(100);
 		indexer.move_velocity(0);
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{2_ft, 0_ft, 0_deg}},
-			"Straight2"
+			{1.5_ft, 0_ft, 50_deg}},
+			"straight1"
 		);
 
-		profileController->setTarget("Straight2", true);
+		left_intake.move_velocity(200);
+		right_intake.move_velocity(200);
+
+		profileController->setTarget("straight1");
 		profileController->waitUntilSettled();
-
-		odomchas->turnAngle(-135_deg);
-
-		profileController->setTarget("Straight2");
-		profileController->waitUntilSettled();
-
-		main_intake.move_velocity(200);
-		indexer.move_velocity(-200);
-
-		profileController->setTarget("Straight2", true);
-		profileController->waitUntilSettled();
-
-		odomchas->turnAngle(-30_deg);
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{6.5_ft, 0_ft, 0_deg}},
-			"Straight3"
+			{0.5_ft, 0_ft, 0_deg}},
+			"littlemove"
 		);
 
-		profileController->setTarget("Straight3");
-		profileController->waitUntilSettled();
-
-		odomchas->turnAngle(40_deg);
-
-
-
-		left_intake.move_velocity(200);
-		right_intake.move_velocity(200);
-
-		profileController->setTarget("Straight1");
-		profileController->waitUntilSettled();
-
-		pros::delay(1500);
-
-		profileController->setTarget("Straight1", true);
+		profileController->setTarget("littlemove");
 		profileController->waitUntilSettled();
 
 
+		// odomchas->turnAngle(-35_deg);
 
-
-
-
-		//Double Goal Begins
-/*
-		odomchas->turnToAngle(70_deg);
-
-		profileController->setTarget("Release");
-		profileController->waitUntilSettled();
-
-		left_intake.move_velocity(200);
-		right_intake.move_velocity(200);
-		main_intake.move_velocity(200);
 		indexer.move_velocity(-200);
-*/
+
+		pros::delay(750);
+
+		indexer.move_velocity(0);
+
+		left_intake.move_velocity(0);
+		right_intake.move_velocity(0);
+
+		// Away from first
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 50_deg},
+			{1_ft, 0_ft, 0_deg}},
+			"straight2"
+		);
+
+		profileController->setTarget("straight1", true);
+		profileController->waitUntilSettled();
+
+		// odomchas->turnAngle(-100_deg);
+
+		// Approach 2nd goal
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{5_ft, 0_ft, 0_deg}},
+			"straight3"
+		);
+
+		profileController->setTarget("straight3");
+		profileController->waitUntilSettled();
+
+		left_intake.move_velocity(200);
+		right_intake.move_velocity(200);
+
+		indexer.move_velocity(-200);
+		main_intake.move_velocity(200);
+
+		pros::delay(750);
+
+		indexer.move_velocity(0);
+		main_intake.move_velocity(0);
+
+		// Away from 2nd goal
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{1.5_ft, 0_ft, 0_deg}},
+			"straight4"
+		);
+
+		profileController->setTarget("straight4", true);
+		profileController->waitUntilSettled();
+
+		odomchas->turnAngle(-25_deg);
+
+		// Approach 3rd goal
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{6_ft, 0_ft, 0_deg}},
+			"straight5"
+		);
+
+		profileController->setTarget("straight5");
+		profileController->waitUntilSettled();
+
+
+
+
+
+
+
+		// int turnValue = encoder.get_value() + 100;
+		//
+		// while(encoder.get_value() < turnValue) {
+		// 	left.moveVelocity(200);
+		// 	right.moveVelocity(-200);
+		// }
+
+
+
+		//Autonomous start
+		// profileController->generatePath({
+		// 	{0_ft, 0_ft, 0_deg},
+		// 	{1_ft, 2_ft, 0_deg}},
+		// 	"curve"
+		// );
+		//
+		// profileController->setTarget("curve");
+		// profileController->waitUntilSettled();
+		//
+		// pros::delay(10000);
+
+		// profileController->generatePath({
+		// 	{0_ft, 0_ft, 0_deg},
+		// 	{1.3_ft, 0_ft, 0_deg}},
+		// 	"Straight1"
+		// );
+		//
+		// profileController->generatePath({
+		// 	{0_ft, 0_ft, 0_deg},
+		// 	{1.5_ft, 0_ft, 0_deg}},
+		// 	"Straight2"
+		// );
+		//
+		// left_intake.move_velocity(200);
+		// right_intake.move_velocity(200);
+		//
+		// profileController->setTarget("Straight1");
+		// profileController->waitUntilSettled();
+		//
+		//
+		// odomchas->turnAngle(-85_deg);
+		//
+		// profileController->setTarget("Straight2");
+		// profileController->waitUntilSettled();
+		//
+		// indexer.move_velocity(-200);
+		//
+		// pros::delay(550);
+		//
+		// while(limit_switch.get_value() >11) {
+		// 	main_intake.move_velocity(150);
+		// }
+		//
+		// left_intake.move_velocity(-100);
+		// right_intake.move_velocity(-100);
+		//
+		// indexer.move_velocity(0);
+		// main_intake.move_velocity(0);
+		//
+		// profileController->generatePath({
+		// 	{0_ft, 0_ft, 0_deg},
+		// 	{3_ft, 0_ft, 0_deg}},
+		// 	"Straight3"
+		// );
+		//
+		// profileController->setTarget("Straight3", true);
+		// profileController->waitUntilSettled();
+		//
+		// left_intake.move_velocity(200);
+		// right_intake.move_velocity(200);
+		//
+		// odomchas->turnAngle(-94_deg);
+		//
+		// left_intake.move_velocity(0);
+		// right_intake.move_velocity(0);
+		//
+		// // Approach Middle Goal
+		//
+		// profileController->generatePath({
+		// 	{0_ft, 0_ft, 0_deg},
+		// 	{3.5_ft, 0_ft, 0_deg}},
+		// 	"Straight4"
+		// );
+		//
+		// profileController->setTarget("Straight4");
+		// profileController->waitUntilSettled();
+		//
+		// main_intake.move_velocity(200);
+		// indexer.move_velocity(-200);
+		// // left_intake.move_velocity(200);
+		// // right_intake.move_velocity(200);
+		//
+		// pros::delay(1000);
+		//
+		// profileController->generatePath({
+		// 	{0_ft, 0_ft, 0_deg},
+		// 	{1.5_ft, 0_ft, 0_deg}},
+		// 	"Straight5"
+		// );
+		//
+		// profileController->setTarget("Straight5", true);
+		// profileController->waitUntilSettled();
+		//
+		// odomchas->turnAngle(-38_deg);
+		//
+		// // Approach last goal
+		//
+		// profileController->generatePath({
+		// 	{0_ft, 0_ft, 0_deg},
+		// 	{6_ft, 0_ft, 0_deg}},
+		// 	"Straight6"
+		// );
+		//
+		// left_intake.move_velocity(200);
+		// right_intake.move_velocity(200);
+		//
+		// profileController->setTarget("Straight6");
+		// profileController->waitUntilSettled();
+		//
+		// odomchas->turnAngle(40_deg);
+		//
+		// profileController->setTarget("Straight1");
+		// profileController->waitUntilSettled();
+		//
+		// pros::delay(750);
+		//
+		// profileController->setTarget("Straight1", true);
+		// profileController->waitUntilSettled();
 
 }
-
 
 /*
  * Runs the operator control code. This function will be started in its own task
@@ -236,6 +383,7 @@ void autonomous() {
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
+
 void opcontrol() {
 
 	pros::Motor main_intake (MAIN_INTAKE);
@@ -245,6 +393,7 @@ void opcontrol() {
 	pros::ADIAnalogIn line_sensor ('A');
 	pros::ADIAnalogIn limit_switch ('B');
 
+	pros::ADIEncoder encoder ('F', 'E');
 
 	std::shared_ptr<ChassisController> drive =
 	    ChassisControllerBuilder()
@@ -273,7 +422,7 @@ void opcontrol() {
 	bool detected = false;
 
   while (true) {
-		pros::lcd::set_text(2, "Left Motor Temperature: N/A"); // + std::to_string(int(left_wheels.get_temperature())) + " C");
+		pros::lcd::set_text(2, "Encoder: " + std::to_string(encoder.get_value())); //  + " C");
 		pros::lcd::set_text(3, "Right Motor Temperature: N/A"); // + std::to_string(int(right_wheels.get_temperature())) + " C");
 		pros::lcd::set_text(4, "Battery Temperature: " + std::to_string(int(pros::battery::get_temperature())) + " C");
 		pros::lcd::set_text(5, "Battery Current: " + std::to_string(pros::battery::get_current()));
@@ -306,22 +455,22 @@ void opcontrol() {
 		else if (right2.isPressed()) {
 
 		if (limit_switch.get_value() >11) {
-
 		main_intake.move_velocity(-100);
 		indexer.move_velocity(-50);
-		left_intake.move_velocity(200);
-		right_intake.move_velocity(-200);
+		left_intake.move_velocity(150);
+		right_intake.move_velocity(-150);
 	} else {
 		main_intake.move_velocity(0);
 		indexer.move_velocity(0);
 		left_intake.move_velocity(150);
 		right_intake.move_velocity(-150);
 	}
+
 	} else if (right1.isPressed() && right2.isPressed()) {
 			main_intake.move_velocity(-200);
 			indexer.move_velocity(-200);
-			left_intake.move_velocity(200);
-			right_intake.move_velocity(-200);
+			left_intake.move_velocity(150);
+			right_intake.move_velocity(-150);
 
 		}
 
