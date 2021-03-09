@@ -137,6 +137,8 @@ void autonomous() {
 		// okapi::MotorGroup left({DRIVE_FRONT_LEFT, DRIVE_BACK_LEFT});
 		// okapi::MotorGroup right({DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT});
 
+		// Red Autonomous -----
+
 		// Deploy Hood
 
 		indexer.move_velocity(200);
@@ -152,7 +154,7 @@ void autonomous() {
 		profileController->setTarget("straight1");
 		profileController->waitUntilSettled();
 
-		odomchas->turnAngle(-90_deg);
+		odomchas->turnAngle(90_deg);
 
 		left_intake.move_velocity(200);
 		right_intake.move_velocity(200);
@@ -180,7 +182,7 @@ void autonomous() {
 		profileController->setTarget("littlemove", true);
 		profileController->waitUntilSettled();
 
-		odomchas->turnAngle(-120_deg);
+		odomchas->turnAngle(115_deg);
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
@@ -202,213 +204,6 @@ void autonomous() {
 		profileController->setTarget("littlemove", true);
 		profileController->waitUntilSettled();
 
-
-
-
-		// odomchas->turnAngle(-35_deg);
-
-		// indexer.move_velocity(-200);
-		//
-		// pros::delay(750);
-		//
-		// indexer.move_velocity(0);
-		//
-		// left_intake.move_velocity(0);
-		// right_intake.move_velocity(0);
-		//
-		// // Away from first
-		//
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 50_deg},
-		// 	{1_ft, 0_ft, 0_deg}},
-		// 	"straight2"
-		// );
-		//
-		// profileController->setTarget("straight1", true);
-		// profileController->waitUntilSettled();
-		//
-		// // odomchas->turnAngle(-100_deg);
-		//
-		// // Approach 2nd goal
-		//
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 0_deg},
-		// 	{5_ft, 0_ft, 0_deg}},
-		// 	"straight3"
-		// );
-		//
-		// profileController->setTarget("straight3");
-		// profileController->waitUntilSettled();
-		//
-		// left_intake.move_velocity(200);
-		// right_intake.move_velocity(200);
-		//
-		// indexer.move_velocity(-200);
-		// main_intake.move_velocity(200);
-		//
-		// pros::delay(750);
-		//
-		// indexer.move_velocity(0);
-		// main_intake.move_velocity(0);
-		//
-		// // Away from 2nd goal
-		//
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 0_deg},
-		// 	{1.5_ft, 0_ft, 0_deg}},
-		// 	"straight4"
-		// );
-		//
-		// profileController->setTarget("straight4", true);
-		// profileController->waitUntilSettled();
-		//
-		// odomchas->turnAngle(-25_deg);
-		//
-		// // Approach 3rd goal
-		//
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 0_deg},
-		// 	{6_ft, 0_ft, 0_deg}},
-		// 	"straight5"
-		// );
-		//
-		// profileController->setTarget("straight5");
-		// profileController->waitUntilSettled();
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		// // int turnValue = encoder.get_value() + 100;
-		// //
-		// // while(encoder.get_value() < turnValue) {
-		// // 	left.moveVelocity(200);
-		// // 	right.moveVelocity(-200);
-		// // }
-		//
-		//
-		//
-		// //Autonomous start
-		// // profileController->generatePath({
-		// // 	{0_ft, 0_ft, 0_deg},
-		// // 	{1_ft, 2_ft, 0_deg}},
-		// 	"curve"
-		// );
-		//
-		// profileController->setTarget("curve");
-		// profileController->waitUntilSettled();
-		//
-		// pros::delay(10000);
-
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 0_deg},
-		// 	{1.3_ft, 0_ft, 0_deg}},
-		// 	"Straight1"
-		// );
-		//
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 0_deg},
-		// 	{1.5_ft, 0_ft, 0_deg}},
-		// 	"Straight2"
-		// );
-		//
-		// left_intake.move_velocity(200);
-		// right_intake.move_velocity(200);
-		//
-		// profileController->setTarget("Straight1");
-		// profileController->waitUntilSettled();
-		//
-		//
-		// odomchas->turnAngle(-85_deg);
-		//
-		// profileController->setTarget("Straight2");
-		// profileController->waitUntilSettled();
-		//
-		// indexer.move_velocity(-200);
-		//
-		// pros::delay(550);
-		//
-		// while(limit_switch.get_value() >11) {
-		// 	main_intake.move_velocity(150);
-		// }
-		//
-		// left_intake.move_velocity(-100);
-		// right_intake.move_velocity(-100);
-		//
-		// indexer.move_velocity(0);
-		// main_intake.move_velocity(0);
-		//
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 0_deg},
-		// 	{3_ft, 0_ft, 0_deg}},
-		// 	"Straight3"
-		// );
-		//
-		// profileController->setTarget("Straight3", true);
-		// profileController->waitUntilSettled();
-		//
-		// left_intake.move_velocity(200);
-		// right_intake.move_velocity(200);
-		//
-		// odomchas->turnAngle(-94_deg);
-		//
-		// left_intake.move_velocity(0);
-		// right_intake.move_velocity(0);
-		//
-		// // Approach Middle Goal
-		//
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 0_deg},
-		// 	{3.5_ft, 0_ft, 0_deg}},
-		// 	"Straight4"
-		// );
-		//
-		// profileController->setTarget("Straight4");
-		// profileController->waitUntilSettled();
-		//
-		// main_intake.move_velocity(200);
-		// indexer.move_velocity(-200);
-		// // left_intake.move_velocity(200);
-		// // right_intake.move_velocity(200);
-		//
-		// pros::delay(1000);
-		//
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 0_deg},
-		// 	{1.5_ft, 0_ft, 0_deg}},
-		// 	"Straight5"
-		// );
-		//
-		// profileController->setTarget("Straight5", true);
-		// profileController->waitUntilSettled();
-		//
-		// odomchas->turnAngle(-38_deg);
-		//
-		// // Approach last goal
-		//
-		// profileController->generatePath({
-		// 	{0_ft, 0_ft, 0_deg},
-		// 	{6_ft, 0_ft, 0_deg}},
-		// 	"Straight6"
-		// );
-		//
-		// left_intake.move_velocity(200);
-		// right_intake.move_velocity(200);
-		//
-		// profileController->setTarget("Straight6");
-		// profileController->waitUntilSettled();
-		//
-		// odomchas->turnAngle(40_deg);
-		//
-		// profileController->setTarget("Straight1");
-		// profileController->waitUntilSettled();
-		//
-		// pros::delay(750);
-		//
-		// profileController->setTarget("Straight1", true);
-		// profileController->waitUntilSettled();
 
 }
 

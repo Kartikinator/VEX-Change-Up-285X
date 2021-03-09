@@ -1,7 +1,7 @@
 {
     "py/object": "pros.conductor.project.Project",
     "py/state": {
-        "project_name": "Vex2020-21",
+        "project_name": "Red Auton",
         "target": "v5",
         "templates": {
             "kernel": {
