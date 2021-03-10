@@ -147,7 +147,7 @@ void autonomous() {
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{2.9_ft, 0_ft, 0_deg}},
+			{3.05_ft, 0_ft, 0_deg}},
 			"straight1"
 		);
 
