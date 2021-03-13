@@ -120,89 +120,23 @@ void autonomous() {
 	std::shared_ptr<AsyncMotionProfileController> profileController =
 	  AsyncMotionProfileControllerBuilder()
 	    .withLimits({
-	      1.0, // Maximum linear velocity of the Chassis in m/s
-	      2.0, // Maximum linear acceleration of the Chassis in m/s/s
+	      10.0, // Maximum linear velocity of the Chassis in m/s
+	      4.0, // Maximum linear acceleration of the Chassis in m/s/s
 	      5.0 // Maximum linear jerk of the Chassis in m/s/s/s
 	    })
 	    .withOutput(odomchas)
 	    .buildMotionProfileController();
 
-		// Declaring Motors ---
-		// pros::Motor TOP_RIGHT (12, true);
-		// pros::Motor TOP_LEFT (DRIVE_FRONT_LEFT);
-		// pros::Motor BACK_RIGHT (11, true);
-		// pros::Motor BACK_LEFT (DRIVE_BACK_LEFT);
+			profileController->generatePath({
+				{7_ft, 5_ft, 50_deg},
+				{0_ft, 0_ft, 0_deg}},
+				"straight1"
+			);
 
-		//Drive Wheels
-		// okapi::MotorGroup left({DRIVE_FRONT_LEFT, DRIVE_BACK_LEFT});
-		// okapi::MotorGroup right({DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT});
+			profileController->setTarget("straight1");
+			profileController->waitUntilSettled();
 
-		// Red Autonomous -----
 
-		// Deploy Hood
-
-		indexer.move_velocity(200);
-		pros::delay(500);
-		indexer.move_velocity(0);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{3.05_ft, 0_ft, 0_deg}},
-			"straight1"
-		);
-
-		profileController->setTarget("straight1");
-		profileController->waitUntilSettled();
-
-		odomchas->turnAngle(90_deg);
-
-		left_intake.move_velocity(200);
-		right_intake.move_velocity(200);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{3.1_ft, 0_ft, 0_deg}},
-			"littlemove"
-		);
-
-		profileController->setTarget("littlemove");
-		profileController->waitUntilSettled();
-
-		indexer.move_velocity(-200);
-		main_intake.move_velocity(200);
-
-		pros::delay(600);
-
-		indexer.move_velocity(0);
-		main_intake.move_velocity(0);
-
-		left_intake.move_velocity(0);
-		right_intake.move_velocity(0);
-
-		profileController->setTarget("littlemove", true);
-		profileController->waitUntilSettled();
-
-		odomchas->turnAngle(115_deg);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{8.3_ft, 0_ft, 0_deg}},
-			"longstraight"
-		);
-
-		profileController->setTarget("longstraight");
-		profileController->waitUntilSettled();
-
-		indexer.move_velocity(-200);
-		main_intake.move_velocity(200);
-
-		pros::delay(700);
-
-		indexer.move_velocity(0);
-		main_intake.move_velocity(0);
-
-		profileController->setTarget("littlemove", true);
-		profileController->waitUntilSettled();
 
 
 }
