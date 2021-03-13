@@ -120,7 +120,7 @@ void autonomous() {
 	std::shared_ptr<AsyncMotionProfileController> profileController =
 	  AsyncMotionProfileControllerBuilder()
 	    .withLimits({
-	      10.0, // Maximum linear velocity of the Chassis in m/s
+	      1.0, // Maximum linear velocity of the Chassis in m/s
 	      4.0, // Maximum linear acceleration of the Chassis in m/s/s
 	      5.0 // Maximum linear jerk of the Chassis in m/s/s/s
 	    })
@@ -128,8 +128,8 @@ void autonomous() {
 	    .buildMotionProfileController();
 
 			profileController->generatePath({
-				{7_ft, 5_ft, 50_deg},
-				{0_ft, 0_ft, 0_deg}},
+				{0_ft, 0_ft, 0_deg},
+				{6.5_ft, 5_ft, 45_deg}},
 				"straight1"
 			);
 
