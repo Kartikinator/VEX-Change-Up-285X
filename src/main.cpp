@@ -221,119 +221,126 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 
-void opcontrol() {
+ void opcontrol() {
 
-	pros::Motor main_intake (MAIN_INTAKE);
-	pros::Motor indexer (INDEXER);
-	pros::Motor left_intake (LEFT_INTAKE);
-	pros::Motor right_intake (RIGHT_INTAKE);
-	pros::ADIAnalogIn line_sensor ('A');
-	pros::ADIAnalogIn limit_switch ('B');
+ 	pros::Motor main_intake (MAIN_INTAKE);
+ 	pros::Motor indexer (INDEXER);
+ 	pros::Motor left_intake (LEFT_INTAKE);
+ 	pros::Motor right_intake (RIGHT_INTAKE);
+ 	pros::ADIAnalogIn line_sensor ('A');
+ 	pros::ADIAnalogIn limit_switch ('B');
 
-	pros::ADIEncoder encoder ('F', 'E');
+ 	pros::ADIEncoder encoder ('F', 'E');
 
-	std::shared_ptr<ChassisController> drive =
-	    ChassisControllerBuilder()
-	        .withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
-	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
-	        .build();
+ 	std::shared_ptr<ChassisController> drive =
+ 	    ChassisControllerBuilder()
+ 	        .withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
+ 	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+ 	        .build();
 
-	Controller controller;
+ 	Controller controller;
 
-	pros::motor_brake_mode_e_t mode = pros::E_MOTOR_BRAKE_HOLD;
-	ControllerDigital a_button {17};
-	ControllerButton button(a_button);
+ 	pros::motor_brake_mode_e_t mode = pros::E_MOTOR_BRAKE_HOLD;
+ 	ControllerDigital a {DIGITAL_A};
+ 	ControllerButton a_button(a);
 
-	ControllerDigital r1 {8};
-	ControllerButton right1(r1);
+ 	ControllerDigital b {DIGITAL_B};
+ 	ControllerButton b_button(b);
 
-	ControllerDigital r2 {9};
-	ControllerButton right2(r2);
+ 	ControllerDigital r1 {DIGITAL_R1};
+ 	ControllerButton right1(r1);
 
-	ControllerDigital l1 {DIGITAL_L1};
-	ControllerButton left1(l1);
+ 	ControllerDigital r2 {DIGITAL_R2};
+ 	ControllerButton right2(r2);
 
-	ControllerDigital l2 {DIGITAL_L2};
-	ControllerButton left2(l2);
+ 	ControllerDigital l1 {DIGITAL_L1};
+ 	ControllerButton left1(l1);
 
-	bool detected = false;
+ 	ControllerDigital l2 {DIGITAL_L2};
+ 	ControllerButton left2(l2);
 
-  while (true) {
-		pros::lcd::set_text(2, "Encoder: " + std::to_string(encoder.get_value())); //  + " C");
-		pros::lcd::set_text(3, "Right Motor Temperature: N/A"); // + std::to_string(int(right_wheels.get_temperature())) + " C");
-		pros::lcd::set_text(4, "Battery Temperature: " + std::to_string(int(pros::battery::get_temperature())) + " C");
-		pros::lcd::set_text(5, "Battery Current: " + std::to_string(pros::battery::get_current()));
-		pros::lcd::set_text(6, "Line Sensor: " + std::to_string(line_sensor.get_value()));
+ 	bool detected = false;
 
-		if (detected == false) {
+   while (true) {
+ 		pros::lcd::set_text(2, "Encoder: " + std::to_string(encoder.get_value())); //  + " C");
+ 		pros::lcd::set_text(3, "Right Motor Temperature: N/A"); // + std::to_string(int(right_wheels.get_temperature())) + " C");
+ 		pros::lcd::set_text(4, "Battery Temperature: " + std::to_string(int(pros::battery::get_temperature())) + " C");
+ 		pros::lcd::set_text(5, "Battery Current: " + std::to_string(pros::battery::get_current()));
+ 		pros::lcd::set_text(6, "Line Sensor: " + std::to_string(line_sensor.get_value()));
 
-		if (right1.isPressed()) {
-			main_intake.move_velocity(0);
-			indexer.move_velocity(-200);
-			left_intake.move_velocity(0);
-			right_intake.move_velocity(0);
-		}
-		else if (button.isPressed()) {
-				main_intake.move_velocity(-200);
-				indexer.move_velocity(-200);
-		}
-		else if (left1.isPressed()) {
-				main_intake.move_velocity(200);
-				indexer.move_velocity(200);
-				left_intake.move_velocity(-200);
-				right_intake.move_velocity(200);
-		}
-		else if (left2.isPressed()) {
-				main_intake.move_velocity(-200);
-				indexer.move_velocity(200);
-				left_intake.move_velocity(200);
-				right_intake.move_velocity(-200);
-		}
-		else if (right2.isPressed()) {
+ 		if (detected == false) {
 
-		if (limit_switch.get_value() >11) {
-		main_intake.move_velocity(-100);
-		indexer.move_velocity(-50);
-		left_intake.move_velocity(150);
-		right_intake.move_velocity(-150);
-	} else {
-		main_intake.move_velocity(0);
-		indexer.move_velocity(0);
-		left_intake.move_velocity(150);
-		right_intake.move_velocity(-150);
-	}
+ 		if (right1.isPressed()) {
+ 			main_intake.move_velocity(0);
+ 			indexer.move_velocity(-200);
+ 			left_intake.move_velocity(0);
+ 			right_intake.move_velocity(0);
+ 		}
+ 		else if (a_button.isPressed()) {
+ 				main_intake.move_velocity(-200);
+ 				indexer.move_velocity(-200);
+ 		}
+ 		else if (b_button.isPressed()) {
+ 			left_intake.move_velocity(-150);
+ 			right_intake.move_velocity(150);
+ 		}
+ 		else if (left1.isPressed()) {
+ 				main_intake.move_velocity(200);
+ 				indexer.move_velocity(200);
+ 				left_intake.move_velocity(-200);
+ 				right_intake.move_velocity(200);
+ 		}
+ 		else if (left2.isPressed()) {
+ 				main_intake.move_velocity(-200);
+ 				indexer.move_velocity(200);
+ 				left_intake.move_velocity(200);
+ 				right_intake.move_velocity(-200);
+ 		}
+ 		else if (right2.isPressed()) {
 
-	} else if (right1.isPressed() && right2.isPressed()) {
-			main_intake.move_velocity(-200);
-			indexer.move_velocity(-200);
-			left_intake.move_velocity(150);
-			right_intake.move_velocity(-150);
+ 		if (limit_switch.get_value() >11) {
+ 		main_intake.move_velocity(-100);
+ 		indexer.move_velocity(-50);
+ 		left_intake.move_velocity(150);
+ 		right_intake.move_velocity(-150);
+ 	} else {
+ 		main_intake.move_velocity(0);
+ 		indexer.move_velocity(0);
+ 		left_intake.move_velocity(150);
+ 		right_intake.move_velocity(-150);
+ 	}
 
-		}
+ 	} else if (right1.isPressed() && right2.isPressed()) {
+ 			main_intake.move_velocity(-200);
+ 			indexer.move_velocity(-200);
+ 			left_intake.move_velocity(150);
+ 			right_intake.move_velocity(-150);
 
-		else {
-			main_intake.move_velocity(0);
-			indexer.move_velocity(0);
-			left_intake.move_velocity(0);
-			right_intake.move_velocity(0);
-		}
-	}
+ 		}
 
-
-		// if (right2.isPressed()) {
-		// 	pros::lcd::set_text(7, "You are holding the button!");
-		// 	main_intake.move_velocity(50);
-		// 	secondary_intake.move_velocity(50);
-		// } else {
-		// 	main_intake.move_velocity(0);
-		// 	secondary_intake.move_velocity(0);
-		// }
+ 		else {
+ 			main_intake.move_velocity(0);
+ 			indexer.move_velocity(0);
+ 			left_intake.move_velocity(0);
+ 			right_intake.move_velocity(0);
+ 		}
+ 	}
 
 
+ 		// if (right2.isPressed()) {
+ 		// 	pros::lcd::set_text(7, "You are holding the button!");
+ 		// 	main_intake.move_velocity(50);
+ 		// 	secondary_intake.move_velocity(50);
+ 		// } else {
+ 		// 	main_intake.move_velocity(0);
+ 		// 	secondary_intake.move_velocity(0);
+ 		// }
 
-		drive->getModel()->arcade(controller.getAnalog(ControllerAnalog::leftY),
-                            controller.getAnalog(ControllerAnalog::rightX));
+ 
 
-    pros::delay(10);
-  }
-}
+ 		drive->getModel()->arcade(controller.getAnalog(ControllerAnalog::leftY),
+                             controller.getAnalog(ControllerAnalog::rightX));
+
+     pros::delay(10);
+   }
+ }
