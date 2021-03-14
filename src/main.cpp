@@ -137,7 +137,7 @@ void autonomous() {
 		// okapi::MotorGroup left({DRIVE_FRONT_LEFT, DRIVE_BACK_LEFT});
 		// okapi::MotorGroup right({DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT});
 
-		// Red Autonomous -----
+		// Autonomous -----
 
 		// Deploy Hood
 
@@ -171,13 +171,13 @@ void autonomous() {
 		indexer.move_velocity(-200);
 		main_intake.move_velocity(200);
 
-		pros::delay(525);
+		pros::delay(580);
 
 		indexer.move_velocity(0);
 		main_intake.move_velocity(0);
 
-		left_intake.move_velocity(0);
-		right_intake.move_velocity(0);
+		left_intake.move_velocity(-200);
+		right_intake.move_velocity(-200);
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
@@ -196,6 +196,9 @@ void autonomous() {
 			"longstraight"
 		);
 
+		left_intake.move_velocity(200);
+		right_intake.move_velocity(200);
+
 		profileController->setTarget("longstraight");
 		profileController->waitUntilSettled();
 
@@ -206,6 +209,9 @@ void autonomous() {
 
 		indexer.move_velocity(0);
 		main_intake.move_velocity(0);
+
+		left_intake.move_velocity(0);
+		right_intake.move_velocity(0);
 
 		profileController->setTarget("littlemove", true);
 		profileController->waitUntilSettled();
@@ -349,4 +355,4 @@ void autonomous() {
 
      pros::delay(10);
    }
- }
+}
