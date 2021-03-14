@@ -182,11 +182,11 @@ void autonomous() {
 		profileController->setTarget("littlemove", true);
 		profileController->waitUntilSettled();
 
-		odomchas->turnAngle(115_deg);
+		odomchas->turnAngle(130_deg);
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{8.3_ft, 0_ft, 0_deg}},
+			{8.5_ft, 5_ft, 45_deg}},
 			"longstraight"
 		);
 
