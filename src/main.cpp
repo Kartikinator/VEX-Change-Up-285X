@@ -161,7 +161,7 @@ void autonomous() {
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{3.1_ft, 0_ft, 0_deg}},
+			{2.9_ft, 0_ft, 0_deg}},
 			"littlemove"
 		);
 
@@ -171,7 +171,7 @@ void autonomous() {
 		indexer.move_velocity(-200);
 		main_intake.move_velocity(200);
 
-		pros::delay(600);
+		pros::delay(525);
 
 		indexer.move_velocity(0);
 		main_intake.move_velocity(0);
@@ -179,14 +179,20 @@ void autonomous() {
 		left_intake.move_velocity(0);
 		right_intake.move_velocity(0);
 
-		profileController->setTarget("littlemove", true);
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{3.1_ft, 0_ft, 0_deg}},
+			"secondback"
+		);
+
+		profileController->setTarget("secondback", true);
 		profileController->waitUntilSettled();
 
 		odomchas->turnAngle(130_deg);
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
-			{8.5_ft, 5_ft, 45_deg}},
+			{8.5_ft, 5_ft, 55_deg}},
 			"longstraight"
 		);
 
