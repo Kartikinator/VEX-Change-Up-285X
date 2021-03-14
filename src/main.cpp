@@ -182,27 +182,27 @@ void autonomous() {
 		profileController->setTarget("littlemove", true);
 		profileController->waitUntilSettled();
 
-		odomchas->turnAngle(130_deg);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{8.5_ft, 5_ft, 45_deg}},
-			"longstraight"
-		);
-
-		profileController->setTarget("longstraight");
-		profileController->waitUntilSettled();
-
-		indexer.move_velocity(-200);
-		main_intake.move_velocity(200);
-
-		pros::delay(700);
-
-		indexer.move_velocity(0);
-		main_intake.move_velocity(0);
-
-		profileController->setTarget("littlemove", true);
-		profileController->waitUntilSettled();
+		// odomchas->turnAngle(130_deg);
+		//
+		// profileController->generatePath({
+		// 	{0_ft, 0_ft, 0_deg},
+		// 	{8.5_ft, 5_ft, 45_deg}},
+		// 	"longstraight"
+		// );
+		//
+		// profileController->setTarget("longstraight");
+		// profileController->waitUntilSettled();
+		//
+		// indexer.move_velocity(-200);
+		// main_intake.move_velocity(200);
+		//
+		// pros::delay(700);
+		//
+		// indexer.move_velocity(0);
+		// main_intake.move_velocity(0);
+		//
+		// profileController->setTarget("littlemove", true);
+		// profileController->waitUntilSettled();
 
 
 }
