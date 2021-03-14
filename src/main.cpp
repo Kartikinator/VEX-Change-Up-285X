@@ -290,7 +290,7 @@ void autonomous() {
  		}
  		else if (a_button.isPressed()) {
  				main_intake.move_velocity(-200);
- 				indexer.move_velocity(-200);
+ 				indexer.move_velocity(-100);
  		}
  		else if (b_button.isPressed()) {
  			left_intake.move_velocity(-150);
