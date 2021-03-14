@@ -97,6 +97,119 @@ void turn(ADIEncoder encoder, int amount, okapi::MotorGroup left, okapi::MotorGr
  }
 
 void autonomous() {
+	pros::Motor main_intake (MAIN_INTAKE, true);
+	pros::Motor indexer (INDEXER);
+	pros::Motor left_intake (LEFT_INTAKE);
+	pros::Motor right_intake (RIGHT_INTAKE, true);
+
+	pros::ADIAnalogIn limit_switch ('B');
+
+	pros::ADIAnalogIn bumper ('C');
+
+	pros::ADIEncoder encoder ('F', 'E');
+
+	// Declaring Chassis ---
+	std::shared_ptr<OdomChassisController> odomchas =
+	    ChassisControllerBuilder()
+	        .withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
+	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+					.withOdometry()
+	        .buildOdometry();
+
+
+	std::shared_ptr<AsyncMotionProfileController> profileController =
+	  AsyncMotionProfileControllerBuilder()
+	    .withLimits({
+	      1.0, // Maximum linear velocity of the Chassis in m/s
+	      2.0, // Maximum linear acceleration of the Chassis in m/s/s
+	      5.0 // Maximum linear jerk of the Chassis in m/s/s/s
+	    })
+	    .withOutput(odomchas)
+	    .buildMotionProfileController();
+
+		// Declaring Motors ---
+		// pros::Motor TOP_RIGHT (12, true);
+		// pros::Motor TOP_LEFT (DRIVE_FRONT_LEFT);
+		// pros::Motor BACK_RIGHT (11, true);
+		// pros::Motor BACK_LEFT (DRIVE_BACK_LEFT);
+
+		//Drive Wheels
+		// okapi::MotorGroup left({DRIVE_FRONT_LEFT, DRIVE_BACK_LEFT});
+		// okapi::MotorGroup right({DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT});
+
+		// Red Autonomous -----
+
+		// Deploy Hood
+
+		indexer.move_velocity(200);
+		pros::delay(500);
+		indexer.move_velocity(0);
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{3.05_ft, 0_ft, 0_deg}},
+			"straight1"
+		);
+
+		profileController->setTarget("straight1");
+		profileController->waitUntilSettled();
+
+		odomchas->turnAngle(90_deg);
+
+		left_intake.move_velocity(200);
+		right_intake.move_velocity(200);
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{2.9_ft, 0_ft, 0_deg}},
+			"littlemove"
+		);
+
+		profileController->setTarget("littlemove");
+		profileController->waitUntilSettled();
+
+		indexer.move_velocity(-200);
+		main_intake.move_velocity(200);
+
+		pros::delay(525);
+
+		indexer.move_velocity(0);
+		main_intake.move_velocity(0);
+
+		left_intake.move_velocity(0);
+		right_intake.move_velocity(0);
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{3.1_ft, 0_ft, 0_deg}},
+			"secondback"
+		);
+
+		profileController->setTarget("secondback", true);
+		profileController->waitUntilSettled();
+
+		odomchas->turnAngle(130_deg);
+
+		profileController->generatePath({
+			{0_ft, 0_ft, 0_deg},
+			{8.5_ft, 5_ft, 55_deg}},
+			"longstraight"
+		);
+
+		profileController->setTarget("longstraight");
+		profileController->waitUntilSettled();
+
+		indexer.move_velocity(-200);
+		main_intake.move_velocity(200);
+
+		pros::delay(700);
+
+		indexer.move_velocity(0);
+		main_intake.move_velocity(0);
+
+		profileController->setTarget("littlemove", true);
+		profileController->waitUntilSettled();
+
 
 }
 
@@ -134,16 +247,13 @@ void opcontrol() {
 	Controller controller;
 
 	pros::motor_brake_mode_e_t mode = pros::E_MOTOR_BRAKE_HOLD;
-	ControllerDigital a {DIGITAL_A};
-	ControllerButton a_button(a);
+	ControllerDigital a_button {17};
+	ControllerButton button(a_button);
 
-	ControllerDigital b {DIGITAL_B};
-	ControllerButton b_button(b);
-
-	ControllerDigital r1 {DIGITAL_R1};
+	ControllerDigital r1 {8};
 	ControllerButton right1(r1);
 
-	ControllerDigital r2 {DIGITAL_R2};
+	ControllerDigital r2 {9};
 	ControllerButton right2(r2);
 
 	ControllerDigital l1 {DIGITAL_L1};
@@ -169,13 +279,9 @@ void opcontrol() {
 			left_intake.move_velocity(0);
 			right_intake.move_velocity(0);
 		}
-		else if (a_button.isPressed()) {
+		else if (button.isPressed()) {
 				main_intake.move_velocity(-200);
 				indexer.move_velocity(-200);
-		}
-		else if (b_button.isPressed()) {
-			left_intake.move_velocity(-150);
-			right_intake.move_velocity(150);
 		}
 		else if (left1.isPressed()) {
 				main_intake.move_velocity(200);
