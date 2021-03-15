@@ -171,10 +171,15 @@ void autonomous() {
 		indexer.move_velocity(-200);
 		main_intake.move_velocity(200);
 
-		pros::delay(580);
+		pros::delay(900);
 
 		indexer.move_velocity(0);
 		main_intake.move_velocity(0);
+
+		left_intake.move_velocity(0);
+		right_intake.move_velocity(0);
+
+
 
 		profileController->generatePath({
 			{0_ft, 0_ft, 0_deg},
