@@ -247,7 +247,7 @@ void autonomous() {
  	std::shared_ptr<ChassisController> drive =
  	    ChassisControllerBuilder()
  	        .withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
- 	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+ 	        .withDimensions(AbstractMotor::gearset::green, {{3.25_in, 14_in}, imev5GreenTPR})
  	        .build();
 
  	Controller controller;
