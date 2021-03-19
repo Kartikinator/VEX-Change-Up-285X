@@ -1,7 +1,7 @@
 {
     "py/object": "pros.conductor.project.Project",
     "py/state": {
-        "project_name": "3 Goal Auton",
+        "project_name": "X-Drive",
         "target": "v5",
         "templates": {
             "kernel": {
