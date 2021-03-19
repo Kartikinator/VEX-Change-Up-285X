@@ -347,11 +347,13 @@ void autonomous() {
  		// 	main_intake.move_velocity(0);
  		// 	secondary_intake.move_velocity(0);
  		// }
+		auto xModel = std::dynamic_pointer_cast<XDriveModel>(drive->getModel());
+		xModel->xArcade(
+		  			controller.getAnalog(ControllerAnalog::rightX), //side to side
+		      	controller.getAnalog(ControllerAnalog::rightY), //front back
+		      	controller.getAnalog(ControllerAnalog::leftX) //spin
+				  );
 
-
-
- 		drive->getModel()->arcade(controller.getAnalog(ControllerAnalog::leftY),
-                             controller.getAnalog(ControllerAnalog::rightX));
 
      pros::delay(10);
    }
