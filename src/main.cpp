@@ -4,15 +4,17 @@
 
 
 // MOTOR PORTS
-int DRIVE_FRONT_LEFT = -1;
-int DRIVE_FRONT_RIGHT = 12;
-int DRIVE_BACK_RIGHT = -11;
-int DRIVE_BACK_LEFT = 2;
+int DRIVE_FRONT_LEFT = 11;
+int DRIVE_FRONT_RIGHT = -1;
+int DRIVE_BACK_RIGHT = -10;
+int DRIVE_BACK_LEFT = 20;
 
 int INDEXER = 10;
 int MAIN_INTAKE = 9;
 int LEFT_INTAKE = 8;
 int RIGHT_INTAKE = 20;
+
+const double Deadzone = 0.1;
 
 
 bool front = false;
@@ -351,7 +353,8 @@ void autonomous() {
 		xModel->xArcade(
 		  			controller.getAnalog(ControllerAnalog::rightX), //side to side
 		      	controller.getAnalog(ControllerAnalog::rightY), //front back
-		      	controller.getAnalog(ControllerAnalog::leftX) //spin
+		      	controller.getAnalog(ControllerAnalog::leftX), //spin
+						Deadzone
 				  );
 
 
