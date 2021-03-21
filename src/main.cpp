@@ -1,7 +1,4 @@
 #include "main.h"
-// #include "devices.cpp"
-// #include "C:\Users\srika_5auwk87\Documents\VCU-285X-AUTONOMOUS\VEX-Change-Up-285X\src\AutonFiles\skills.cpp"
-
 
 // MOTOR PORTS
 int DRIVE_FRONT_LEFT = 11;
@@ -47,6 +44,47 @@ void on_center_button() {
 		pros::lcd::set_text(1, "Please select a side first");
 	}
 }
+pros::Motor main_intake (MAIN_INTAKE, true);
+pros::Motor indexer (INDEXER);
+pros::Motor left_intake (LEFT_INTAKE);
+pros::Motor right_intake (RIGHT_INTAKE, true);
+
+pros::ADIAnalogIn limit_switch ('B');
+
+pros::ADIAnalogIn bumper ('C');
+
+ADIEncoder leftencoder ('F', 'E');
+ADIEncoder rightencoder ('F', 'E');
+ADIEncoder middleencoder ('F', 'E');
+
+// Declaring Chassis ---
+std::shared_ptr<OdomChassisController> odomchas =
+		ChassisControllerBuilder()
+				.withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
+				.withSensors(leftencoder, rightencoder, middleencoder)
+				.withGains(
+						{0.0035, 0, 0}, // Distance controller gains
+						{0.006, 0, 0}, // Turn controller gains
+						{0.002, 0, 0.00006}  // Angle controller gains (helps drive straight)
+					)
+				.withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+				.withOdometry()
+				.buildOdometry();
+
+
+std::shared_ptr<AsyncMotionProfileController> profileController =
+	AsyncMotionProfileControllerBuilder()
+		.withLimits({
+			1.0, // Maximum linear velocity of the Chassis in m/s
+			2.0, // Maximum linear acceleration of the Chassis in m/s/s
+			5.0 // Maximum linear jerk of the Chassis in m/s/s/s
+		})
+		.withOutput(odomchas)
+		.buildMotionProfileController();
+
+auto xModel = std::dynamic_pointer_cast<XDriveModel>(odomchas->getModel());
+
+Controller controller;
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -99,36 +137,6 @@ void turn(ADIEncoder encoder, int amount, okapi::MotorGroup left, okapi::MotorGr
  }
 
 void autonomous() {
-	pros::Motor main_intake (MAIN_INTAKE, true);
-	pros::Motor indexer (INDEXER);
-	pros::Motor left_intake (LEFT_INTAKE);
-	pros::Motor right_intake (RIGHT_INTAKE, true);
-
-	pros::ADIAnalogIn limit_switch ('B');
-
-	pros::ADIAnalogIn bumper ('C');
-
-	pros::ADIEncoder encoder ('F', 'E');
-
-	// Declaring Chassis ---
-	std::shared_ptr<OdomChassisController> odomchas =
-	    ChassisControllerBuilder()
-	        .withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
-	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
-					.withOdometry()
-	        .buildOdometry();
-
-
-	std::shared_ptr<AsyncMotionProfileController> profileController =
-	  AsyncMotionProfileControllerBuilder()
-	    .withLimits({
-	      1.0, // Maximum linear velocity of the Chassis in m/s
-	      2.0, // Maximum linear acceleration of the Chassis in m/s/s
-	      5.0 // Maximum linear jerk of the Chassis in m/s/s/s
-	    })
-	    .withOutput(odomchas)
-	    .buildMotionProfileController();
-
 		// Declaring Motors ---
 		// pros::Motor TOP_RIGHT (12, true);
 		// pros::Motor TOP_LEFT (DRIVE_FRONT_LEFT);
@@ -153,70 +161,7 @@ void autonomous() {
 			"straight1"
 		);
 
-		profileController->setTarget("straight1");
-		profileController->waitUntilSettled();
 
-		odomchas->turnAngle(90_deg);
-
-		left_intake.move_velocity(200);
-		right_intake.move_velocity(200);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{2.9_ft, 0_ft, 0_deg}},
-			"littlemove"
-		);
-
-		profileController->setTarget("littlemove");
-		profileController->waitUntilSettled();
-
-		indexer.move_velocity(-200);
-		main_intake.move_velocity(200);
-
-		pros::delay(580);
-
-		indexer.move_velocity(0);
-		main_intake.move_velocity(0);
-
-		left_intake.move_velocity(-200);
-		right_intake.move_velocity(-200);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{3.1_ft, 0_ft, 0_deg}},
-			"secondback"
-		);
-
-		profileController->setTarget("secondback", true);
-		profileController->waitUntilSettled();
-
-		odomchas->turnAngle(130_deg);
-
-		profileController->generatePath({
-			{0_ft, 0_ft, 0_deg},
-			{8.5_ft, 5_ft, 55_deg}},
-			"longstraight"
-		);
-
-		left_intake.move_velocity(200);
-		right_intake.move_velocity(200);
-
-		profileController->setTarget("longstraight");
-		profileController->waitUntilSettled();
-
-		indexer.move_velocity(-200);
-		main_intake.move_velocity(200);
-
-		pros::delay(700);
-
-		indexer.move_velocity(0);
-		main_intake.move_velocity(0);
-
-		left_intake.move_velocity(0);
-		right_intake.move_velocity(0);
-
-		profileController->setTarget("littlemove", true);
-		profileController->waitUntilSettled();
 
 
 }
@@ -236,23 +181,6 @@ void autonomous() {
  */
 
  void opcontrol() {
-
- 	pros::Motor main_intake (MAIN_INTAKE);
- 	pros::Motor indexer (INDEXER);
- 	pros::Motor left_intake (LEFT_INTAKE);
- 	pros::Motor right_intake (RIGHT_INTAKE);
- 	pros::ADIAnalogIn line_sensor ('A');
- 	pros::ADIAnalogIn limit_switch ('B');
-
- 	pros::ADIEncoder encoder ('F', 'E');
-
- 	std::shared_ptr<ChassisController> drive =
- 	    ChassisControllerBuilder()
- 	        .withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
- 	        .withDimensions(AbstractMotor::gearset::green, {{3.25_in, 14_in}, imev5GreenTPR})
- 	        .build();
-
- 	Controller controller;
 
  	pros::motor_brake_mode_e_t mode = pros::E_MOTOR_BRAKE_HOLD;
  	ControllerDigital a {DIGITAL_A};
@@ -276,11 +204,11 @@ void autonomous() {
  	bool detected = false;
 
    while (true) {
- 		pros::lcd::set_text(2, "Encoder: " + std::to_string(encoder.get_value())); //  + " C");
+ 	//	pros::lcd::set_text(2, "Encoder: " + std::to_string(encoder.get_value())); //  + " C");
  		pros::lcd::set_text(3, "Right Motor Temperature: N/A"); // + std::to_string(int(right_wheels.get_temperature())) + " C");
  		pros::lcd::set_text(4, "Battery Temperature: " + std::to_string(int(pros::battery::get_temperature())) + " C");
  		pros::lcd::set_text(5, "Battery Current: " + std::to_string(pros::battery::get_current()));
- 		pros::lcd::set_text(6, "Line Sensor: " + std::to_string(line_sensor.get_value()));
+ //		pros::lcd::set_text(6, "Line Sensor: " + std::to_string(line_sensor.get_value()));
 
  		if (detected == false) {
 
@@ -349,7 +277,6 @@ void autonomous() {
  		// 	main_intake.move_velocity(0);
  		// 	secondary_intake.move_velocity(0);
  		// }
-		auto xModel = std::dynamic_pointer_cast<XDriveModel>(drive->getModel());
 		xModel->xArcade(
 		  			controller.getAnalog(ControllerAnalog::rightX), //side to side
 		      	controller.getAnalog(ControllerAnalog::rightY), //front back
