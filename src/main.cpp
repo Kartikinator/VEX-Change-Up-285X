@@ -131,10 +131,6 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void turn(ADIEncoder encoder, int amount, okapi::MotorGroup left, okapi::MotorGroup right) {
- 	left.moveVelocity(-200);
- 	right.moveVelocity(200);
- }
 
 void autonomous() {
 		// Declaring Motors ---
