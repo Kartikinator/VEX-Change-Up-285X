@@ -2,14 +2,14 @@
 
 // MOTOR PORTS
 int DRIVE_FRONT_LEFT = 11;
-int DRIVE_FRONT_RIGHT = -1;
+int DRIVE_FRONT_RIGHT = -2;
 int DRIVE_BACK_RIGHT = -10;
 int DRIVE_BACK_LEFT = 20;
 
-int INDEXER = 10;
-int MAIN_INTAKE = 9;
-int LEFT_INTAKE = 8;
-int RIGHT_INTAKE = 20;
+int INDEXER = 9;
+int MAIN_INTAKE = 5;
+int LEFT_INTAKE = 16;
+int RIGHT_INTAKE = 17;
 
 const double Deadzone = 0.1;
 
