@@ -5,14 +5,14 @@
 
 // MOTOR PORTS
 int DRIVE_FRONT_LEFT = 11;
-int DRIVE_FRONT_RIGHT = -1;
+int DRIVE_FRONT_RIGHT = -2;
 int DRIVE_BACK_RIGHT = -10;
 int DRIVE_BACK_LEFT = 20;
 
-int INDEXER = 10;
-int MAIN_INTAKE = 9;
-int LEFT_INTAKE = 8;
-int RIGHT_INTAKE = 20;
+int INDEXER = 9;
+int MAIN_INTAKE = 5;
+int LEFT_INTAKE = 16;
+int RIGHT_INTAKE = 17;
 
 const double Deadzone = 0.1;
 
@@ -312,17 +312,22 @@ void autonomous() {
  		}
  		else if (right2.isPressed()) {
 
- 		if (limit_switch.get_value() >11) {
- 		main_intake.move_velocity(-100);
+ 	// 	if (limit_switch.get_value() >11) {
+ 	// 	main_intake.move_velocity(-100);
+ 	// 	indexer.move_velocity(-50);
+ 	// 	left_intake.move_velocity(150);
+ 	// 	right_intake.move_velocity(-150);
+ 	// } else {
+ 	// 	main_intake.move_velocity(0);
+ 	// 	indexer.move_velocity(0);
+ 	// 	left_intake.move_velocity(150);
+ 	// 	right_intake.move_velocity(-150);
+ 	// }
+
+		main_intake.move_velocity(-100);
  		indexer.move_velocity(-50);
  		left_intake.move_velocity(150);
  		right_intake.move_velocity(-150);
- 	} else {
- 		main_intake.move_velocity(0);
- 		indexer.move_velocity(0);
- 		left_intake.move_velocity(150);
- 		right_intake.move_velocity(-150);
- 	}
 
  	} else if (right1.isPressed() && right2.isPressed()) {
  			main_intake.move_velocity(-200);
