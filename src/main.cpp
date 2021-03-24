@@ -1,5 +1,5 @@
 #include "main.h"
-
+#include "devices.cpp"
 // MOTOR PORTS
 int DRIVE_FRONT_LEFT = 11;
 int DRIVE_FRONT_RIGHT = -2;
@@ -49,6 +49,12 @@ pros::Motor indexer (INDEXER);
 pros::Motor left_intake (LEFT_INTAKE);
 pros::Motor right_intake (RIGHT_INTAKE, true);
 
+pros::Motor drive_b_l(DRIVE_BACK_LEFT);
+pros::Motor drive_b_r(DRIVE_BACK_RIGHT);
+pros::Motor drive_f_l(DRIVE_FRONT_LEFT);
+pros::Motor drive_f_r(DRIVE_FRONT_RIGHT);
+
+
 pros::ADIAnalogIn limit_switch ('B');
 
 pros::ADIAnalogIn bumper ('C');
@@ -68,7 +74,7 @@ std::shared_ptr<OdomChassisController> odomchas =
 						{0.002, 0, 0.00006}  // Angle controller gains (helps drive straight)
 					)
 				.withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
-				.withOdometry()
+				.withOdometry({{2.75_in, 7_in, 1_in, 2.75_in}, quadEncoderTPR})
 				.buildOdometry();
 
 
