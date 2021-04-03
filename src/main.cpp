@@ -6,6 +6,11 @@ int DRIVE_FRONT_RIGHT = -2;
 int DRIVE_BACK_RIGHT = -10;
 int DRIVE_BACK_LEFT = 20;
 
+int chassisDRIVE_FRONT_LEFT = 11;
+int chassisDRIVE_FRONT_RIGHT = 2;
+int chassisDRIVE_BACK_RIGHT = 10;
+int chassisDRIVE_BACK_LEFT = 20;
+
 int INDEXER = 9;
 int MAIN_INTAKE = 5;
 int LEFT_INTAKE = 16;
@@ -49,30 +54,40 @@ pros::Motor indexer (INDEXER);
 pros::Motor left_intake (LEFT_INTAKE);
 pros::Motor right_intake (RIGHT_INTAKE, true);
 
+/*
 pros::Motor drive_b_l(DRIVE_BACK_LEFT);
 pros::Motor drive_b_r(DRIVE_BACK_RIGHT);
 pros::Motor drive_f_l(DRIVE_FRONT_LEFT);
 pros::Motor drive_f_r(DRIVE_FRONT_RIGHT);
+*/
 
-pros::ADIAnalogIn limit_switch ('B');
+okapi::MotorGroup driveF({2, 11}); //negative voltage
+okapi::MotorGroup driveB({20, 10});	//positive voltage
+
+pros::ADIAnalogIn limit_switch ('A');
 
 pros::ADIAnalogIn bumper ('C');
 
 ADIEncoder leftencoder ('F', 'E');
 ADIEncoder rightencoder ('F', 'E');
-ADIEncoder middleencoder ('F', 'E');
+ADIEncoder middleencoder ('E', 'F');
 
 // Declaring Chassis ---
 std::shared_ptr<OdomChassisController> odomchas =
 		ChassisControllerBuilder()
 				.withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
-				.withSensors(leftencoder, rightencoder, middleencoder)
+				//.withSensors(leftencoder, rightencoder, middleencoder)
 				.withGains(
 						{0.0035, 0, 0}, // Distance controller gains
 						{0.006, 0, 0}, // Turn controller gains
 						{0.002, 0, 0.00006}  // Angle controller gains (helps drive straight)
 					)
-				.withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+				.withSensors(
+					ADIEncoder{'G', 'H'},
+					ADIEncoder{'C', 'D', true},
+					ADIEncoder{'E', 'F'}
+				)
+				.withDimensions(AbstractMotor::gearset::green, {{2.75_in, 7_in, 1_in, 2.75_in}, quadEncoderTPR})
 				.withOdometry()
 				.buildOdometry();
 
@@ -123,7 +138,9 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -136,110 +153,138 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-double move_kP = 0;
-double move_kI = 0;
-double move_kD = 0;
+double move_kP = 3.0;
+double move_kI = 0.0;
+double move_kD = 0.01;
 
 double move_Error = 0;
 double move_lastError = 0;
 double move_intg = 0;
 double move_deriv = 0;
 double move_totalError =0;
+double velocity = 0;
 
-bool resetencoders = false;
-bool isPIDon = true;
+bool atTarget = false;
+//use inches for coords
+void strafeBot(double distn){
 
-//use inches for coords pls
-void moveBot(int xcor, int ycor){
-  //Vertical movement
-  double magn = sqrt(xcor^2+ycor^2);
-  double headg = atan2 (ycor,xcor);
-
-  while (isPIDon){
-    if(resetencoders){
-      resetencoders = false;
-      leftencoder.reset();
-      rightencoder.reset();
-    }
-    /////////// DISTANCE PID
-    double avg_enc_val = (leftencoder.get()*41.669+rightencoder.get()*41.669)/2;
-
+middleencoder.reset();
+  while (1){
+		/////////// STRAFE PID
+		double enc_val = middleencoder.get();
+		double dist_to_tick = (distn/(2.75*pi))*360;
     //Proportional
-    move_Error = magn-avg_enc_val;
+    move_Error = dist_to_tick-enc_val;
 
     //Derivative
-    move_deriv = move_Error-move_lastError;
+    velocity = move_Error-move_lastError;
 
+		if (fabs(enc_val - dist_to_tick) < 10 && fabs(velocity)< 20){
+			break;
+		}
     //Integral
-    if(move_Error != 0){
+    if(fabs(move_Error) < 300){
     move_totalError += move_Error;
   } else {
     move_totalError = 0;
-  }
+	}
 
-    move_lastError = move_Error;
+    double updated_voltage = move_kP*move_Error + move_kI*move_totalError + move_kD*velocity;
+		// float input_voltage = (updated_dist/dist)*50;
 
-    double mag_sum = move_kP*move_Error + move_kI*move_totalError + move_kD*move_deriv;
+		driveF.moveVoltage(-updated_voltage);
+		driveB.moveVoltage(updated_voltage);
 
-
-    //double updated_x_cor = mag_sum*sin(heading);
-    //double updated_y_cor = mag_sum*cos(heading);
-
-
-    drive_b_l.move_voltage((int)(sin(headg-pi/4)*mag_sum)+0.5);
-    drive_b_r.move_voltage((int)(sin(headg+pi/4)*mag_sum)+0.5);
-    drive_f_l.move_voltage((int)(sin(headg+pi/4)*mag_sum)+0.5);
-    drive_f_r.move_voltage((int)(sin(headg-pi/4)*mag_sum)+0.5);
-
-    pros::delay(20);
-}
+		move_lastError = move_Error;
+		pros::delay(20);
 
 }
-
-double turn_kP = 0;
-double turn_kI = 0;
-double turn_kD = 0;
-
-double turn_Error = 0;
-double turn_lastError = 0;
-double turn_intg = 0;
-double turn_deriv = 0;
-double turn_totalError = 0;
+driveF.moveVoltage(0);
+driveB.moveVoltage(0);
+}
 
 
-//Use degrees
-void turnBot(int angle){
-
-    double deltaL = leftencoder.get()*41.669;
-    double deltaR = rightencoder.get()*41.669;
-    double track_wheel_dist = 7.25+7.25; //MEASURE THESE ON BOT
-
-    double current_heading = (deltaL+deltaR)/track_wheel_dist;
-    double heading_deg = current_heading*180/pi;
-
-    //turn PID
-
-    //Proportion
-    turn_Error = angle-heading_deg;
-    //Derivative
-    turn_deriv = turn_Error-turn_lastError;
-    //Integral
-    if(turn_Error != 0){
-      turn_totalError += turn_Error;
-    }else{
-      move_totalError = 0;
-    }
-
-    turn_lastError = turn_Error;
-
-    double angle_sum = turn_kP*turn_Error + turn_kI*turn_totalError + turn_kD*turn_deriv;
+void strafe(int angle, int dist){
 
 
 }
-
 void autonomous() {
-	moveBot(1,1);
-	turnBot(90);
+
+	odomchas->setState({0_in,0_in,0_deg});
+	//bottom center + initalize
+	xModel->strafe(-50);
+
+	left_intake.move_velocity(-100);
+	right_intake.move_velocity(-100);
+	pros::delay(500);
+	left_intake.move_velocity(0);
+	right_intake.move_velocity(0);
+
+	/*
+	profileController->generatePath(
+		{{0_ft, 0_ft, 0_deg},
+		{4_ft, 0_ft, 90_deg}},
+		"Straight1");
+
+	profileController-> generatePath(
+		{{0_ft, 0_ft, 0_deg},
+		{1.5_ft, 0_ft, 0_deg}},
+		"Straight2");
+
+	profileController-> generatePath(
+			{{0_ft, 0_ft, 0_deg},
+			{3_ft, 0_ft, 90_deg}},
+			"Straight3");
+
+	profileController->generatePath(
+		{{0_ft, 0_ft, 0_deg},
+		{1_ft, 0_ft, 0_deg}},
+		"Straight4");
+	*/
+	//bottom right corner
+	left_intake.move_velocity(200);
+	right_intake.move_velocity(200);
+	profileController->setTarget("Straight1");
+	profileController->waitUntilSettled();
+	profileController->removePath("Straight1");
+	profileController->setTarget("Straight2");
+	indexer.move_velocity(200);
+	pros::delay(500);
+	indexer.move_velocity(0);
+	left_intake.move_velocity(0);
+	right_intake.move_velocity(0);
+
+	profileController->generatePath(
+		{{0_ft, 0_ft, 0_deg},
+		{3_ft, -1_ft, 0_deg}},
+		"Straight4");
+
+	//middle right
+	profileController->setTarget("Straight2", true);
+	profileController->removePath("Straight2");
+	odomchas->turnAngle(-100_deg);
+	left_intake.move_velocity(200);
+	right_intake.move_velocity(200);
+	profileController->setTarget("Straight3");
+	profileController->waitUntilSettled();
+	profileController->removePath("Straight3");
+	profileController->setTarget("Straight4");
+	indexer.move_velocity(200);
+	pros::delay(500);
+	indexer.move_velocity(0);
+	left_intake.move_velocity(0);
+	right_intake.move_velocity(0);
+
+	//top right
+	profileController->setTarget("Straight4", true);
+	profileController->waitUntilSettled();
+	profileController->removePath("Straight4");
+
+
+
+
+
+
 }
 
 /*
@@ -295,18 +340,18 @@ void autonomous() {
  			right_intake.move_velocity(0);
  		}
  		else if (a_button.isPressed()) {
- 				main_intake.move_velocity(-200);
- 				indexer.move_velocity(-100);
- 		}
- 		else if (b_button.isPressed()) {
- 			left_intake.move_velocity(-150);
- 			right_intake.move_velocity(150);
- 		}
- 		else if (left1.isPressed()) {
  				main_intake.move_velocity(200);
  				indexer.move_velocity(200);
+ 		}
+ 		else if (b_button.isPressed()) {
+ 			left_intake.move_velocity(-200);
+ 			right_intake.move_velocity(-200);
+ 		}
+ 		else if (left1.isPressed()) {
+ 				main_intake.move_velocity(-200);
+ 				indexer.move_velocity(200);
  				left_intake.move_velocity(-200);
- 				right_intake.move_velocity(200);
+ 				right_intake.move_velocity(-200);
  		}
  		else if (left2.isPressed()) {
  				main_intake.move_velocity(-200);
@@ -317,15 +362,15 @@ void autonomous() {
  		else if (right2.isPressed()) {
 
  		if (limit_switch.get_value() >11) {
- 		main_intake.move_velocity(-100);
- 		indexer.move_velocity(-50);
- 		left_intake.move_velocity(150);
- 		right_intake.move_velocity(-150);
+ 		main_intake.move_velocity(200);
+ 		indexer.move_velocity(-100);
+ 		left_intake.move_velocity(200);
+ 		right_intake.move_velocity(200);
  	} else {
  		main_intake.move_velocity(0);
  		indexer.move_velocity(0);
  		left_intake.move_velocity(150);
- 		right_intake.move_velocity(-150);
+ 		right_intake.move_velocity(150);
  	}
 
  	} else if (right1.isPressed() && right2.isPressed()) {
