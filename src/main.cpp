@@ -6,10 +6,6 @@ int DRIVE_FRONT_RIGHT = -2;
 int DRIVE_BACK_RIGHT = -10;
 int DRIVE_BACK_LEFT = 20;
 
-int chassisDRIVE_FRONT_LEFT = 11;
-int chassisDRIVE_FRONT_RIGHT = 2;
-int chassisDRIVE_BACK_RIGHT = 10;
-int chassisDRIVE_BACK_LEFT = 20;
 
 int INDEXER = 9;
 int MAIN_INTAKE = 5;
@@ -78,10 +74,10 @@ std::shared_ptr<OdomChassisController> odomchas =
 				.withMotors(DRIVE_FRONT_LEFT, DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT, DRIVE_BACK_LEFT)
 				//.withSensors(leftencoder, rightencoder, middleencoder)
 				.withGains(
-						{0.0035, 0, 0}, // Distance controller gains
-						{0.006, 0, 0}, // Turn controller gains
-						{0.002, 0, 0.00006}  // Angle controller gains (helps drive straight)
-					)
+					{0.002, 0.00001, 0}, // Distance controller gains
+					{0.007, 0, 0}, // Turn controller gains
+					{0.002, 0, 0.00006}  // Angle controller gains (helps drive straight)
+				 	)
 				.withSensors(
 					ADIEncoder{'G', 'H'},
 					ADIEncoder{'C', 'D', true},
@@ -120,6 +116,12 @@ void initialize() {
 	pros::lcd::register_btn1_cb(on_center_button);
 	pros::lcd::register_btn2_cb(on_right_button);
 
+	profileController->generatePath(
+		{{0_ft, 0_ft, 0_deg},
+		{1_ft, 0_ft, 0_deg}},
+		"A"
+	);
+
 }
 
 /**
@@ -153,6 +155,7 @@ void competition_initialize() {
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+ /*
 double move_kP = 3.0;
 double move_kI = 0.0;
 double move_kD = 0.01;
@@ -202,87 +205,44 @@ middleencoder.reset();
 driveF.moveVoltage(0);
 driveB.moveVoltage(0);
 }
-
-
-void strafe(int angle, int dist){
-
-
-}
+*/
 void autonomous() {
 
-	odomchas->setState({0_in,0_in,0_deg});
-	//bottom center + initalize
-	xModel->strafe(-50);
 
+	odomchas->setState({0_in,0_in,0_deg});
+	// //initalize
+	xModel->strafe(-50);
+	pros::delay(600);
+	xModel->strafe(0);
+	//intake deploy
 	left_intake.move_velocity(-100);
 	right_intake.move_velocity(-100);
-	pros::delay(500);
-	left_intake.move_velocity(0);
-	right_intake.move_velocity(0);
+	indexer.move_velocity(-200);
+	main_intake.move_velocity(200);
+	odomchas->turnToAngle(-90_deg);
 
-	/*
-	profileController->generatePath(
-		{{0_ft, 0_ft, 0_deg},
-		{4_ft, 0_ft, 90_deg}},
-		"Straight1");
 
-	profileController-> generatePath(
-		{{0_ft, 0_ft, 0_deg},
-		{1.5_ft, 0_ft, 0_deg}},
-		"Straight2");
-
-	profileController-> generatePath(
-			{{0_ft, 0_ft, 0_deg},
-			{3_ft, 0_ft, 90_deg}},
-			"Straight3");
-
-	profileController->generatePath(
-		{{0_ft, 0_ft, 0_deg},
-		{1_ft, 0_ft, 0_deg}},
-		"Straight4");
-	*/
-	//bottom right corner
+	//
+	// //bottom right corner
 	left_intake.move_velocity(200);
 	right_intake.move_velocity(200);
-	profileController->setTarget("Straight1");
-	profileController->waitUntilSettled();
-	profileController->removePath("Straight1");
-	profileController->setTarget("Straight2");
-	indexer.move_velocity(200);
-	pros::delay(500);
-	indexer.move_velocity(0);
+	main_intake.move_velocity(200);
+	indexer.move_velocity(-200);
+	odomchas->setState({0_in,0_in,0_deg});
+	//printf(odomchas->getState().str().c_str());
+	odomchas->driveToPoint({1_ft, 0_ft});
+	//printf(odomchas->getState().str().c_str());
+
 	left_intake.move_velocity(0);
 	right_intake.move_velocity(0);
-
-	profileController->generatePath(
-		{{0_ft, 0_ft, 0_deg},
-		{3_ft, -1_ft, 0_deg}},
-		"Straight4");
-
-	//middle right
-	profileController->setTarget("Straight2", true);
-	profileController->removePath("Straight2");
-	odomchas->turnAngle(-100_deg);
-	left_intake.move_velocity(200);
-	right_intake.move_velocity(200);
-	profileController->setTarget("Straight3");
-	profileController->waitUntilSettled();
-	profileController->removePath("Straight3");
-	profileController->setTarget("Straight4");
-	indexer.move_velocity(200);
-	pros::delay(500);
 	indexer.move_velocity(0);
-	left_intake.move_velocity(0);
-	right_intake.move_velocity(0);
+	main_intake.move_velocity(0);
 
-	//top right
-	profileController->setTarget("Straight4", true);
-	profileController->waitUntilSettled();
-	profileController->removePath("Straight4");
-
-
-
-
+	odomchas->setState({0_in,0_in,0_deg});
+	pros::delay(500);
+	//printf(odomchas->getState().str().c_str());
+	odomchas->driveToPoint({1_ft, 0_ft}, true);
+	//printf(odomchas->getState().str().c_str());
 
 
 }
@@ -304,6 +264,7 @@ void autonomous() {
  void opcontrol() {
 
  	pros::motor_brake_mode_e_t mode = pros::E_MOTOR_BRAKE_HOLD;
+
  	ControllerDigital a {DIGITAL_A};
  	ControllerButton a_button(a);
 
@@ -341,7 +302,7 @@ void autonomous() {
  		}
  		else if (a_button.isPressed()) {
  				main_intake.move_velocity(200);
- 				indexer.move_velocity(200);
+ 				indexer.move_velocity(-200);
  		}
  		else if (b_button.isPressed()) {
  			left_intake.move_velocity(-200);
@@ -354,10 +315,10 @@ void autonomous() {
  				right_intake.move_velocity(-200);
  		}
  		else if (left2.isPressed()) {
- 				main_intake.move_velocity(-200);
+ 				main_intake.move_velocity(200);
  				indexer.move_velocity(200);
  				left_intake.move_velocity(200);
- 				right_intake.move_velocity(-200);
+ 				right_intake.move_velocity(200);
  		}
  		else if (right2.isPressed()) {
 
