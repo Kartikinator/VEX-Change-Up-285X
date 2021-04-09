@@ -6,6 +6,11 @@ int DRIVE_FRONT_RIGHT = -2;
 int DRIVE_BACK_RIGHT = -10;
 int DRIVE_BACK_LEFT = 20;
 
+int STRAFE_DRIVE_FRONT_LEFT = 11;
+int STRAFE_DRIVE_FRONT_RIGHT = 2;
+int STRAFE_DRIVE_BACK_RIGHT = -10;
+int STRAFE_DRIVE_BACK_LEFT = -20;
+
 
 int INDEXER = 9;
 int MAIN_INTAKE = 5;
@@ -57,8 +62,8 @@ pros::Motor drive_f_l(DRIVE_FRONT_LEFT);
 pros::Motor drive_f_r(DRIVE_FRONT_RIGHT);
 */
 
-okapi::MotorGroup driveF({2, 11}); //negative voltage
-okapi::MotorGroup driveB({20, 10});	//positive voltage
+// okapi::MotorGroup driveL({11,20});
+// okapi::MotorGroup driveR({2, 10});//give negative voltage when moving forward
 
 pros::ADIAnalogIn limit_switch ('A');
 
@@ -87,16 +92,41 @@ std::shared_ptr<OdomChassisController> odomchas =
 				.withOdometry()
 				.buildOdometry();
 
+std::shared_ptr<AsyncMotionProfileController> moveProfile =
+		AsyncMotionProfileControllerBuilder()
+				.withLimits({
+						1.0, // Maximum linear velocity of the Chassis in m/s
+						2.0, // Maximum linear acceleration of the Chassis in m/s/s
+						5.0 // Maximum linear jerk of the Chassis in m/s/s/s
+					})
+					.withOutput(odomchas)
+					.buildMotionProfileController();
 
-std::shared_ptr<AsyncMotionProfileController> profileController =
-	AsyncMotionProfileControllerBuilder()
-		.withLimits({
-			1.0, // Maximum linear velocity of the Chassis in m/s
-			2.0, // Maximum linear acceleration of the Chassis in m/s/s
-			5.0 // Maximum linear jerk of the Chassis in m/s/s/s
-		})
-		.withOutput(odomchas)
-		.buildMotionProfileController();
+
+std::shared_ptr<OdomChassisController> strafeodomchas =
+		ChassisControllerBuilder()
+				.withMotors(STRAFE_DRIVE_FRONT_LEFT, STRAFE_DRIVE_FRONT_RIGHT, STRAFE_DRIVE_BACK_RIGHT, STRAFE_DRIVE_BACK_LEFT)
+				//.withSensors(leftencoder, rightencoder, middleencoder)
+				.withGains(
+					{0.002, 0.00001, 0}, // Distance controller gains
+					{0.007, 0, 0}, // Turn controller gains
+					{0.002, 0, 0.00006}  // Angle controller gains (helps drive straight)
+				 	)
+				.withDimensions(AbstractMotor::gearset::green, {{3.75_in, 15_in}, imev5GreenTPR})
+				.withOdometry()
+				.buildOdometry();
+
+std::shared_ptr<AsyncMotionProfileController> strafeProfile =
+		AsyncMotionProfileControllerBuilder()
+				.withLimits({
+						1.0, // Maximum linear velocity of the Chassis in m/s
+						2.0, // Maximum linear acceleration of the Chassis in m/s/s
+						5.0 // Maximum linear jerk of the Chassis in m/s/s/s
+					})
+					.withOutput(strafeodomchas)
+					.buildMotionProfileController();
+
+
 
 auto xModel = std::dynamic_pointer_cast<XDriveModel>(odomchas->getModel());
 
@@ -116,11 +146,19 @@ void initialize() {
 	pros::lcd::register_btn1_cb(on_center_button);
 	pros::lcd::register_btn2_cb(on_right_button);
 
-	profileController->generatePath(
-		{{0_ft, 0_ft, 0_deg},
-		{1_ft, 0_ft, 0_deg}},
-		"A"
+	moveProfile->generatePath(
+	    {{0_ft, 0_ft, 0_deg},
+			{1.5_ft, 0_ft, 0_deg}},
+			"move1"
 	);
+
+
+	strafeProfile->generatePath(
+		{{0_ft, 0_ft, 0_deg},
+		{1.25_ft, 0_ft, 0_deg}},
+		"strafe1"
+	);
+
 
 }
 
@@ -155,95 +193,52 @@ void competition_initialize() {
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
- /*
-double move_kP = 3.0;
-double move_kI = 0.0;
-double move_kD = 0.01;
+ //ft, negative for backward, positive for forward
 
-double move_Error = 0;
-double move_lastError = 0;
-double move_intg = 0;
-double move_deriv = 0;
-double move_totalError =0;
-double velocity = 0;
+//only Forward/Backward
+//20 is about the distance from the first part to the goal
 
-bool atTarget = false;
-//use inches for coords
-void strafeBot(double distn){
+//keep move values between 0 and 20 absolute;
 
-middleencoder.reset();
-  while (1){
-		/////////// STRAFE PID
-		double enc_val = middleencoder.get();
-		double dist_to_tick = (distn/(2.75*pi))*360;
-    //Proportional
-    move_Error = dist_to_tick-enc_val;
-
-    //Derivative
-    velocity = move_Error-move_lastError;
-
-		if (fabs(enc_val - dist_to_tick) < 10 && fabs(velocity)< 20){
-			break;
-		}
-    //Integral
-    if(fabs(move_Error) < 300){
-    move_totalError += move_Error;
-  } else {
-    move_totalError = 0;
-	}
-
-    double updated_voltage = move_kP*move_Error + move_kI*move_totalError + move_kD*velocity;
-		// float input_voltage = (updated_dist/dist)*50;
-
-		driveF.moveVoltage(-updated_voltage);
-		driveB.moveVoltage(updated_voltage);
-
-		move_lastError = move_Error;
-		pros::delay(20);
-
-}
-driveF.moveVoltage(0);
-driveB.moveVoltage(0);
-}
-*/
 void autonomous() {
 
-
-	odomchas->setState({0_in,0_in,0_deg});
 	// //initalize
-	xModel->strafe(-50);
-	pros::delay(600);
-	xModel->strafe(0);
+	strafeProfile->setTarget("strafe1");
+	strafeProfile->waitUntilSettled();
+	pros::delay(10);
 	//intake deploy
+
 	left_intake.move_velocity(-100);
 	right_intake.move_velocity(-100);
 	indexer.move_velocity(-200);
 	main_intake.move_velocity(200);
-	odomchas->turnToAngle(-90_deg);
-
-
-	//
-	// //bottom right corner
-	left_intake.move_velocity(200);
-	right_intake.move_velocity(200);
-	main_intake.move_velocity(200);
-	indexer.move_velocity(-200);
-	odomchas->setState({0_in,0_in,0_deg});
-	//printf(odomchas->getState().str().c_str());
-	odomchas->driveToPoint({1_ft, 0_ft});
-	//printf(odomchas->getState().str().c_str());
-
+	pros::delay(50);
 	left_intake.move_velocity(0);
 	right_intake.move_velocity(0);
 	indexer.move_velocity(0);
 	main_intake.move_velocity(0);
 
 	odomchas->setState({0_in,0_in,0_deg});
-	pros::delay(500);
-	//printf(odomchas->getState().str().c_str());
-	odomchas->driveToPoint({1_ft, 0_ft}, true);
-	//printf(odomchas->getState().str().c_str());
+	odomchas->turnToAngle(-90_deg);
+	//
+	// //bottom right corner
+	left_intake.move_velocity(200);
+	right_intake.move_velocity(200);
 
+	moveProfile->setTarget("move1");
+	moveProfile->waitUntilSettled();
+
+	main_intake.move_velocity(200);
+	indexer.move_velocity(-200);
+	pros::delay(500);
+
+	left_intake.move_velocity(0);
+	right_intake.move_velocity(0);
+	main_intake.move_velocity(0);
+	indexer.move_velocity(0);
+
+	moveProfile->setTarget("move1", true);
+	moveProfile->waitUntilSettled();
 
 }
 
