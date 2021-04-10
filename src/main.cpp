@@ -65,12 +65,12 @@ pros::Motor drive_f_r(DRIVE_FRONT_RIGHT);
 // okapi::MotorGroup driveL({11,20});
 // okapi::MotorGroup driveR({2, 10});//give negative voltage when moving forward
 
-pros::ADIAnalogIn limit_switch ('A');
+pros::ADIAnalogIn line_sensor ('A');
 
 pros::ADIAnalogIn bumper ('C');
 
-ADIEncoder leftencoder ('F', 'E');
-ADIEncoder rightencoder ('F', 'E');
+ADIEncoder leftencoder ('G', 'H');
+ADIEncoder rightencoder ('C', 'D');
 ADIEncoder middleencoder ('E', 'F');
 
 // Declaring Chassis ---
@@ -147,9 +147,15 @@ void initialize() {
 	pros::lcd::register_btn2_cb(on_right_button);
 
 	moveProfile->generatePath(
-	    {{0_ft, 0_ft, 0_deg},
+			{{0_ft, 0_ft, 0_deg},
 			{1.5_ft, 0_ft, 0_deg}},
 			"move1"
+	);
+
+	moveProfile->generatePath(
+			{{0_ft, 0_ft, 0_deg},
+			{2.4_ft, 0_ft, 0_deg}},
+			"move2"
 	);
 
 
@@ -159,6 +165,11 @@ void initialize() {
 		"strafe1"
 	);
 
+	strafeProfile->generatePath(
+		{{0_ft, 0_ft, 0_deg},
+		{2.5_ft, 0_ft, 0_deg}},
+		"strafe2"
+	);
 
 }
 
@@ -205,14 +216,12 @@ void autonomous() {
 	// //initalize
 	strafeProfile->setTarget("strafe1");
 	strafeProfile->waitUntilSettled();
-	pros::delay(10);
-	//intake deploy
 
 	left_intake.move_velocity(-100);
 	right_intake.move_velocity(-100);
 	indexer.move_velocity(-200);
 	main_intake.move_velocity(200);
-	pros::delay(50);
+	pros::delay(100);
 	left_intake.move_velocity(0);
 	right_intake.move_velocity(0);
 	indexer.move_velocity(0);
@@ -220,13 +229,72 @@ void autonomous() {
 
 	odomchas->setState({0_in,0_in,0_deg});
 	odomchas->turnToAngle(-90_deg);
-	//
-	// //bottom right corner
+	odomchas->waitUntilSettled();
+	// ///////////////////////////////// //bottom left corner
 	left_intake.move_velocity(200);
 	right_intake.move_velocity(200);
 
 	moveProfile->setTarget("move1");
 	moveProfile->waitUntilSettled();
+	pros::delay(10);
+
+	main_intake.move_velocity(200);
+	indexer.move_velocity(-200);
+	pros::delay(1000);
+	left_intake.move_velocity(-100);
+	right_intake.move_velocity(-100);
+	main_intake.move_velocity(0);
+
+	moveProfile->setTarget("move1", true);
+	moveProfile->waitUntilSettled();
+	left_intake.move_velocity(0);
+	right_intake.move_velocity(0);
+
+
+	/////////////////////////bottom middle corner
+	odomchas->setState({0_in,0_in,0_deg});
+	odomchas->turnToAngle(-105_deg);
+
+	strafeProfile->setTarget("strafe2", true);
+	strafeProfile->waitUntilSettled();
+
+	left_intake.move_velocity(200);
+	right_intake.move_velocity(200);
+
+	moveProfile->setTarget("move2");
+	moveProfile->waitUntilSettled();
+	pros::delay(10);
+
+	main_intake.move_velocity(200);
+	indexer.move_velocity(-200);
+	pros::delay(500);
+
+	main_intake.move_velocity(0);
+	indexer.move_velocity(0);
+
+	left_intake.move_velocity(-200);
+	right_intake.move_velocity(-200);
+	moveProfile->setTarget("move1", true);
+	moveProfile->waitUntilSettled();
+	pros::delay(10);
+	left_intake.move_velocity(0);
+	right_intake.move_velocity(0);
+
+////////////////////////bottom right corner
+	strafeProfile->setTarget("strafe2", true);
+	strafeProfile->waitUntilSettled();
+	pros::delay(10);
+
+	odomchas->setState({0_in,0_in,0_deg});
+	odomchas->turnToAngle(-50_deg);
+
+
+	left_intake.move_velocity(200);
+	right_intake.move_velocity(200);
+
+	moveProfile->setTarget("move1");
+	moveProfile->waitUntilSettled();
+	pros::delay(10);
 
 	main_intake.move_velocity(200);
 	indexer.move_velocity(-200);
@@ -239,6 +307,8 @@ void autonomous() {
 
 	moveProfile->setTarget("move1", true);
 	moveProfile->waitUntilSettled();
+	pros::delay(10);
+
 
 }
 
@@ -317,7 +387,7 @@ void autonomous() {
  		}
  		else if (right2.isPressed()) {
 
- 		if (limit_switch.get_value() >11) {
+ 		if (line_sensor.get_value() > 1500) {
  		main_intake.move_velocity(200);
  		indexer.move_velocity(-100);
  		left_intake.move_velocity(200);
