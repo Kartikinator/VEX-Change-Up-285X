@@ -146,32 +146,44 @@ void initialize() {
 	pros::lcd::register_btn1_cb(on_center_button);
 	pros::lcd::register_btn2_cb(on_right_button);
 
-
-
 	moveProfile->generatePath(
+				{{0_ft, 0_ft, 0_deg},
+				{2.53_ft, 0_ft, 0_deg}},
+				"move1"
+		);
+
+		moveProfile->generatePath(
+				{{0_ft, 0_ft, 0_deg},
+				{2.4_ft, 0_ft, 0_deg}},
+				"move2"
+		);
+
+		moveProfile->generatePath(
+					{{0_ft, 0_ft, 0_deg},
+					{0.66_ft, 0_ft, 0_deg}},
+					"move3"
+			);
+
+
+
+		strafeProfile->generatePath(
 			{{0_ft, 0_ft, 0_deg},
-			{1.5_ft, 0_ft, 0_deg}},
-			"move1"
-	);
+			{2.75_ft, 0_ft, 0_deg}},
+			"strafe1"
+		);
 
-	moveProfile->generatePath(
+		strafeProfile->generatePath(
 			{{0_ft, 0_ft, 0_deg},
-			{2.4_ft, 0_ft, 0_deg}},
-			"move2"
-	);
+			{2.75_ft, 0_ft, 0_deg}},
+			"strafe2"
+		);
 
+		strafeProfile->generatePath(
+			{{0_ft, 0_ft, 0_deg},
+			{0.85_ft, 0_ft, 0_deg}},
+			"strafe3"
+		);
 
-	strafeProfile->generatePath(
-		{{0_ft, 0_ft, 0_deg},
-		{1.25_ft, 0_ft, 0_deg}},
-		"strafe1"
-	);
-
-	strafeProfile->generatePath(
-		{{0_ft, 0_ft, 0_deg},
-		{2.75_ft, 0_ft, 0_deg}},
-		"strafe2"
-	);
 
 }
 
@@ -213,182 +225,69 @@ void competition_initialize() {
 
 //keep move values between 0 and 20 absolute;
 
+
 void autonomous() {
 
-///1st iteration
-	left_intake.move_velocity(-100);
-	right_intake.move_velocity(-100);
-	indexer.move_velocity(-200);
-	pros::delay(300);
-	left_intake.move_velocity(0);
-	right_intake.move_velocity(0);
-	indexer.move_velocity(0);
 
-	// //initalize
-	moveProfile->setTarget("move1");
-	moveProfile->waitUntilSettled();
-
-	odomchas->setState({0_in,0_in,0_deg});
-	odomchas->turnToAngle(-270_deg);
-	odomchas->waitUntilSettled();
-	// ///////////////////////////////// //bottom left corner
-	left_intake.move_velocity(200);
-	right_intake.move_velocity(200);
-
-	moveProfile->setTarget("move1");
-	moveProfile->waitUntilSettled();
-	pros::delay(10);
-	main_intake.move_velocity(200);
-	indexer.move_velocity(-200);
-	pros::delay(1000);
-	left_intake.move_velocity(-100);
-	right_intake.move_velocity(-100);
-	indexer.move_velocity(0);
-	main_intake.move_velocity(0);
-
-	moveProfile->setTarget("move1", true);
-	moveProfile->waitUntilSettled();
-	indexer.move_velocity(-200);
-	main_intake.move_velocity(200);
-	left_intake.move_velocity(0);
-	right_intake.move_velocity(0);
-	pros::delay(600);
-	indexer.move_velocity(0);
-	main_intake.move_velocity(0);
+	///1st iteration
 
 
-	/////////////////////////bottom middle corner
-	main_intake.move_velocity(200);
-	indexer.move_velocity(200);
-	left_intake.move_velocity(200);
-	right_intake.move_velocity(200);
+		// //initalize
+		odomchas->setState({0_in,0_in,0_deg});
+		odomchas->turnToAngle(-36_deg);
+		odomchas->waitUntilSettled();
+		// ///////////////////////////////// //bottom left corner
+		strafeProfile->setTarget("strafe3");
+		strafeProfile->waitUntilSettled();
 
-	odomchas->setState({0_in,0_in,0_deg});
-	odomchas->turnToAngle(-85_deg);
+		left_intake.move_velocity(-200);
+		right_intake.move_velocity(-200);
+		indexer.move_velocity(-200);
+		main_intake.move_velocity(200);
+		pros::delay(400);
+		left_intake.move_velocity(0);
+		right_intake.move_velocity(0);
+		indexer.move_velocity(0);
+		main_intake.move_velocity(0);
 
-	strafeProfile->setTarget("strafe2", true);
-	strafeProfile->waitUntilSettled();
+		pros::delay(50);
 
-	moveProfile->setTarget("move2");
-	moveProfile->waitUntilSettled();
-	pros::delay(10);
+		left_intake.move_velocity(200);
+		right_intake.move_velocity(200);
+		moveProfile->setTarget("move3");
+		moveProfile->waitUntilSettled();
+		main_intake.move_velocity(200);
+		indexer.move_velocity(-200);
+		pros::delay(1100);
+		left_intake.move_velocity(-200);
+		right_intake.move_velocity(-200);
+		main_intake.move_velocity(200);
+		indexer.move_velocity(-200);
+		moveProfile->setTarget("move3", true);
+		moveProfile->waitUntilSettled();
+		left_intake.move_velocity(0);
+		right_intake.move_velocity(0);
+		main_intake.move_velocity(0);
+		indexer.move_velocity(0);
 
-	moveProfile->setTarget("move1", true);
-	moveProfile->waitUntilSettled();
-	pros::delay(10);
+///center goal
 
-////////////////////////bottom right corner
-	strafeProfile->setTarget("strafe2", true);
-	strafeProfile->waitUntilSettled();
-	pros::delay(10);
+		odomchas->setState({0_in,0_in,0_deg});
+		odomchas->turnToAngle(247_deg);
 
-	odomchas->setState({0_in,0_in,0_deg});
-	odomchas->turnToAngle(-80_deg);
+		moveProfile->setTarget("move1");
+		moveProfile->waitUntilSettled();
 
-	moveProfile->setTarget("move1");
-	moveProfile->waitUntilSettled();
-	pros::delay(10);
+		left_intake.move_velocity(200);
+		right_intake.move_velocity(200);
 
-	moveProfile->setTarget("move1", true);
-	moveProfile->waitUntilSettled();
-	pros::delay(10);
+		driveToPoint()
+		/*strafeProfile->setTarget("strafe1");
+		strafeProfile->waitUntilSettled();
+		*/
 
-///2nd iteration
-
-odomchas->setState({0_in,0_in,0_deg});
-odomchas->turnToAngle(-85_deg);
-
-strafeProfile->setTarget("strafe2", true);
-strafeProfile->waitUntilSettled();
-
-moveProfile->setTarget("move2");
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-moveProfile->setTarget("move1", true);
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-////////////////////////bottom right corner
-strafeProfile->setTarget("strafe2", true);
-strafeProfile->waitUntilSettled();
-pros::delay(10);
-
-odomchas->setState({0_in,0_in,0_deg});
-odomchas->turnToAngle(-80_deg);
-
-moveProfile->setTarget("move1");
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-moveProfile->setTarget("move1", true);
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-///3rd iteration
-
-odomchas->setState({0_in,0_in,0_deg});
-odomchas->turnToAngle(-85_deg);
-
-strafeProfile->setTarget("strafe2", true);
-strafeProfile->waitUntilSettled();
-
-moveProfile->setTarget("move2");
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-moveProfile->setTarget("move1", true);
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-////////////////////////bottom right corner
-strafeProfile->setTarget("strafe2", true);
-strafeProfile->waitUntilSettled();
-pros::delay(10);
-
-odomchas->setState({0_in,0_in,0_deg});
-odomchas->turnToAngle(-80_deg);
-
-moveProfile->setTarget("move1");
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-moveProfile->setTarget("move1", true);
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-///4th iteration
-
-odomchas->setState({0_in,0_in,0_deg});
-odomchas->turnToAngle(-85_deg);
-
-strafeProfile->setTarget("strafe2", true);
-strafeProfile->waitUntilSettled();
-
-moveProfile->setTarget("move2");
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-moveProfile->setTarget("move1", true);
-moveProfile->waitUntilSettled();
-pros::delay(10);
-
-////////////////////////center goal
-odomchas->setState({0_in,0_in,0_deg});
-odomchas->turnToAngle(200_deg);
-
-moveProfile->setTarget("move1");
-moveProfile->waitUntilSettled();
-left_intake.move_velocity(-200);
-right_intake.move_velocity(-200);
-pros::delay(1000);
-moveProfile->setTarget("move1", true);
-moveProfile->waitUntilSettled();
-main_intake.move_velocity(0);
-indexer.move_velocity(0);
-left_intake.move_velocity(0);
-right_intake.move_velocity(0);
-
+		left_intake.move_velocity(0);
+		right_intake.move_velocity(0);
 
 }
 
@@ -413,8 +312,8 @@ right_intake.move_velocity(0);
  	ControllerDigital a {DIGITAL_A};
  	ControllerButton a_button(a);
 
- 	ControllerDigital b {DIGITAL_B};
- 	ControllerButton b_button(b);
+ 	ControllerDigital y {DIGITAL_Y};
+ 	ControllerButton y_button(y);
 
  	ControllerDigital r1 {DIGITAL_R1};
  	ControllerButton right1(r1);
@@ -427,6 +326,9 @@ right_intake.move_velocity(0);
 
  	ControllerDigital l2 {DIGITAL_L2};
  	ControllerButton left2(l2);
+
+	ControllerDigital rightarrow {DIGITAL_RIGHT};
+	ControllerButton right_arrow(rightarrow);
 
  	bool detected = false;
 
@@ -449,7 +351,7 @@ right_intake.move_velocity(0);
  				main_intake.move_velocity(200);
  				indexer.move_velocity(-200);
  		}
- 		else if (b_button.isPressed()) {
+ 		else if (right_arrow.isPressed()) {
  			left_intake.move_velocity(-200);
  			right_intake.move_velocity(-200);
  		}
@@ -485,7 +387,12 @@ right_intake.move_velocity(0);
  			left_intake.move_velocity(150);
  			right_intake.move_velocity(-150);
 
- 		}
+ 		} else if (y_button.isPressed()){
+			main_intake.move_velocity(150);
+	 		indexer.move_velocity(-200);
+	 		left_intake.move_velocity(175);
+	 		right_intake.move_velocity(175);
+		}
 
  		else {
  			main_intake.move_velocity(0);
