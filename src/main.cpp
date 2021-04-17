@@ -156,7 +156,7 @@ void initialize() {
 
 		moveProfile->generatePath(
 				{{0_ft, 0_ft, 0_deg},
-				{0.5_ft, 0_ft, 0_deg}},
+				{0.75_ft, 0_ft, 0_deg}},
 				"move2"
 		);
 
