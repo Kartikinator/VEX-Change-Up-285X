@@ -55,23 +55,24 @@ pros::Motor indexer (INDEXER);
 pros::Motor left_intake (LEFT_INTAKE);
 pros::Motor right_intake (RIGHT_INTAKE, true);
 
-/*
-pros::Motor drive_b_l(DRIVE_BACK_LEFT);
-pros::Motor drive_b_r(DRIVE_BACK_RIGHT);
-pros::Motor drive_f_l(DRIVE_FRONT_LEFT);
-pros::Motor drive_f_r(DRIVE_FRONT_RIGHT);
-*/
 
-// okapi::MotorGroup driveL({11,20});
-// okapi::MotorGroup driveR({2, 10});//give negative voltage when moving forward
+Motor drive_b_l(DRIVE_BACK_LEFT);
+Motor drive_b_r(DRIVE_BACK_RIGHT);
+Motor drive_f_l(DRIVE_FRONT_LEFT);
+Motor drive_f_r(DRIVE_FRONT_RIGHT);
+
+
+okapi::MotorGroup driveL({DRIVE_FRONT_LEFT, DRIVE_BACK_LEFT});
+okapi::MotorGroup driveR({DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT});
 
 pros::ADIAnalogIn line_sensor ('A');
 
 pros::ADIAnalogIn bumper ('C');
 
+pros::Imu imuSensor(8);
+
 ADIEncoder leftencoder ('G', 'H');
 ADIEncoder rightencoder ('C', 'D');
-ADIEncoder middleencoder ('E', 'F');
 
 // Declaring Chassis ---
 std::shared_ptr<OdomChassisController> odomchas =
@@ -85,8 +86,7 @@ std::shared_ptr<OdomChassisController> odomchas =
 				 	)
 				.withSensors(
 					ADIEncoder{'G', 'H'},
-					ADIEncoder{'C', 'D', true},
-					ADIEncoder{'E', 'F'}
+					ADIEncoder{'C', 'D', true}
 				)
 				.withDimensions(AbstractMotor::gearset::green, {{2.75_in, 7_in, 1_in, 2.75_in}, quadEncoderTPR})
 				.withOdometry()
@@ -146,6 +146,8 @@ void initialize() {
 	pros::lcd::register_btn1_cb(on_center_button);
 	pros::lcd::register_btn2_cb(on_right_button);
 
+	imuSensor.reset();
+
 	moveProfile->generatePath(
 				{{0_ft, 0_ft, 0_deg},
 				{2.53_ft, 0_ft, 0_deg}},
@@ -154,13 +156,13 @@ void initialize() {
 
 		moveProfile->generatePath(
 				{{0_ft, 0_ft, 0_deg},
-				{2.4_ft, 0_ft, 0_deg}},
+				{0.5_ft, 0_ft, 0_deg}},
 				"move2"
 		);
 
 		moveProfile->generatePath(
 					{{0_ft, 0_ft, 0_deg},
-					{0.66_ft, 0_ft, 0_deg}},
+					{1_ft, 0_ft, 0_deg}},
 					"move3"
 			);
 
@@ -180,8 +182,14 @@ void initialize() {
 
 		strafeProfile->generatePath(
 			{{0_ft, 0_ft, 0_deg},
-			{0.85_ft, 0_ft, 0_deg}},
+			{1.2_ft, 0_ft, 0_deg}},
 			"strafe3"
+		);
+
+		strafeProfile->generatePath(
+			{{0_ft, 0_ft, 0_deg},
+			{3.3_ft, 0_ft, 0_deg}},
+			"strafe4"
 		);
 
 
@@ -225,25 +233,104 @@ void competition_initialize() {
 
 //keep move values between 0 and 20 absolute;
 
+const double GLOBAL_kP = 4;
+const double GLOBAL_kI = 0.00001;
+const double GLOBAL_kD = 0.8;
+
+double deg = 0;
+bool absolute = true;
+
+void calibrate(){
+  imuSensor.reset();
+}
+
+void turn(double degrees){
+
+  driveR.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+  driveL.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+
+  double thetaI = imuSensor.get_heading();
+  double thetaF = degrees;
+
+  double sensorValue = thetaI;
+  double turnTarget = thetaF;
+
+  double deltaI = abs(thetaF - thetaI);
+
+  if (deltaI > 180){
+    if (thetaF > 180) {
+      turnTarget = thetaF - 360;
+    } else {
+      turnTarget = thetaF;
+    }
+
+    if (thetaI > 180) {
+      sensorValue = thetaI - 360;
+    } else {
+      sensorValue = thetaI;
+    }
+  }
+
+  double error = turnTarget - sensorValue;
+  double oldError = error;
+  double sumError = 0;
+
+  bool TURN_NOT_FINISH = true;
+  while (TURN_NOT_FINISH) {
+    sensorValue = imuSensor.get_heading();
+
+    if (deltaI > 180){
+      if (sensorValue > 180) {
+        sensorValue = sensorValue - 360;
+      }
+    }
+
+    //PROPORTIONAL
+    error = turnTarget - sensorValue;
+    //DERIVATIVE
+    double changeInError = error - oldError;
+    //INTEGRAL
+    if (abs(error) < 50) {
+      sumError += error;
+    } else {
+      sumError = 0; //might be += 0?
+    }
+
+    //P, I, D
+    double P = GLOBAL_kP * error;
+    double I = GLOBAL_kI * sumError;
+    double D = GLOBAL_kD * changeInError;
+
+    double sum = P + I + D;
+
+    driveL.moveVelocity(sum);
+    driveR.moveVelocity(-sum);
+
+    oldError = error;
+    double errorThreshold = 1.5;
+    double velocityThreshold = 2;
+
+    TURN_NOT_FINISH = !((abs(error) < errorThreshold) && (abs(changeInError) < velocityThreshold));
+  }
+  driveL.moveVoltage(0);
+  driveR.moveVoltage(0);
+}
 
 void autonomous() {
-
 
 	///1st iteration
 
 
 		// //initalize
-		odomchas->setState({0_in,0_in,0_deg});
-		odomchas->turnToAngle(-36_deg);
-		odomchas->waitUntilSettled();
+		turn(-45);
 		// ///////////////////////////////// //bottom left corner
 		strafeProfile->setTarget("strafe3");
 		strafeProfile->waitUntilSettled();
 
-		left_intake.move_velocity(-200);
-		right_intake.move_velocity(-200);
-		indexer.move_velocity(-200);
-		main_intake.move_velocity(200);
+		left_intake.move_velocity(-150);
+		right_intake.move_velocity(-150);
+		indexer.move_velocity(-150);
+		main_intake.move_velocity(150);
 		pros::delay(400);
 		left_intake.move_velocity(0);
 		right_intake.move_velocity(0);
@@ -254,8 +341,10 @@ void autonomous() {
 
 		left_intake.move_velocity(200);
 		right_intake.move_velocity(200);
+
 		moveProfile->setTarget("move3");
 		moveProfile->waitUntilSettled();
+
 		main_intake.move_velocity(200);
 		indexer.move_velocity(-200);
 		pros::delay(1100);
@@ -265,29 +354,43 @@ void autonomous() {
 		indexer.move_velocity(-200);
 		moveProfile->setTarget("move3", true);
 		moveProfile->waitUntilSettled();
+
 		left_intake.move_velocity(0);
 		right_intake.move_velocity(0);
 		main_intake.move_velocity(0);
 		indexer.move_velocity(0);
 
-///center goal
+///middle goal
 
-		odomchas->setState({0_in,0_in,0_deg});
-		odomchas->turnToAngle(247_deg);
+		turn(-90);
 
-		moveProfile->setTarget("move1");
-		moveProfile->waitUntilSettled();
+
+		strafeProfile->setTarget("strafe4", true);
+		strafeProfile->waitUntilSettled();
+
 
 		left_intake.move_velocity(200);
 		right_intake.move_velocity(200);
 
-		driveToPoint()
-		/*strafeProfile->setTarget("strafe1");
-		strafeProfile->waitUntilSettled();
-		*/
+		moveProfile->setTarget("move2");
+		moveProfile->waitUntilSettled();
+
+		main_intake.move_velocity(200);
+		indexer.move_velocity(-200);
+		pros::delay(600);
+		left_intake.move_velocity(-200);
+		right_intake.move_velocity(-200);
+		main_intake.move_velocity(200);
+		indexer.move_velocity(-200);
+		moveProfile->setTarget("move2", true);
+		moveProfile->waitUntilSettled();
 
 		left_intake.move_velocity(0);
 		right_intake.move_velocity(0);
+		main_intake.move_velocity(0);
+		indexer.move_velocity(0);
+
+
 
 }
 
