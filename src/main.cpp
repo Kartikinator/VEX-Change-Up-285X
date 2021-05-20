@@ -1,10 +1,20 @@
 #include "main.h"
 
+//                       _   _                  _                _
+//                      | | | |                (_)              | |
+//    __ _ _   _  ___   | |_| |__   ___   _ __  _ __________ _  | |__   ___ _ __ ___
+//   / _` | | | |/ _ \  | __| '_ \ / _ \ | '_ \| |_  /_  / _` | | '_ \ / _ \ '__/ _ \
+//  | (_| | |_| | (_) | | |_| | | |  __/ | |_) | |/ / / / (_| | | | | |  __/ | |  __/
+//   \__,_|\__, |\___/   \__|_| |_|\___| | .__/|_/___/___\__,_| |_| |_|\___|_|  \___|
+//          __/ |                        | |
+//         |___/                         |_|
+
+
 // MOTOR PORTS
-int DRIVE_FRONT_LEFT = 11;
-int DRIVE_FRONT_RIGHT = -2;
-int DRIVE_BACK_RIGHT = -10;
-int DRIVE_BACK_LEFT = 20;
+signed char DRIVE_FRONT_LEFT = 11;
+signed char DRIVE_FRONT_RIGHT = -2;
+signed char DRIVE_BACK_RIGHT = -10;
+signed char DRIVE_BACK_LEFT = 20;
 
 int STRAFE_DRIVE_FRONT_LEFT = 11;
 int STRAFE_DRIVE_FRONT_RIGHT = 2;
@@ -37,7 +47,6 @@ void on_left_button()
 
 void on_center_button()
 {
-
 	if (autoColor == "Blue" && front)
 	{
 		pros::lcd::set_text(1, "Back Blue Autonomous Initiated");
@@ -62,11 +71,6 @@ pros::Motor main_intake(MAIN_INTAKE, true);
 pros::Motor indexer(INDEXER);
 pros::Motor left_intake(LEFT_INTAKE);
 pros::Motor right_intake(RIGHT_INTAKE, true);
-
-Motor drive_b_l(DRIVE_BACK_LEFT);
-Motor drive_b_r(DRIVE_BACK_RIGHT);
-Motor drive_f_l(DRIVE_FRONT_LEFT);
-Motor drive_f_r(DRIVE_FRONT_RIGHT);
 
 okapi::MotorGroup driveL({DRIVE_FRONT_LEFT, DRIVE_BACK_LEFT});
 okapi::MotorGroup driveR({DRIVE_FRONT_RIGHT, DRIVE_BACK_RIGHT});
@@ -100,9 +104,9 @@ std::shared_ptr<OdomChassisController> odomchas =
 std::shared_ptr<AsyncMotionProfileController> moveProfile =
 	AsyncMotionProfileControllerBuilder()
 		.withLimits({
-			2.0, // Maximum linear velocity of the Chassis in m/s
-			4.0, // Maximum linear acceleration of the Chassis in m/s/s
-			8.0	 // Maximum linear jerk of the Chassis in m/s/s/s
+			3.0, // Maximum linear velocity of the Chassis in m/s
+			6.0, // Maximum linear acceleration of the Chassis in m/s/s
+			6.0	 // Maximum linear jerk of the Chassis in m/s/s/s
 		})
 		.withOutput(odomchas)
 		.buildMotionProfileController();
@@ -123,9 +127,9 @@ std::shared_ptr<OdomChassisController> strafeodomchas =
 std::shared_ptr<AsyncMotionProfileController> strafeProfile =
 	AsyncMotionProfileControllerBuilder()
 		.withLimits({
-			2.0, // Maximum linear velocity of the Chassis in m/s
-			4.0, // Maximum linear acceleration of the Chassis in m/s/s
-			8.0	 // Maximum linear jerk of the Chassis in m/s/s/s
+			3.0, // Maximum linear velocity of the Chassis in m/s
+			6.0, // Maximum linear acceleration of the Chassis in m/s/s
+			6.0	 // Maximum linear jerk of the Chassis in m/s/s/s
 		})
 		.withOutput(strafeodomchas)
 		.buildMotionProfileController();
@@ -154,17 +158,12 @@ void initialize()
 	moveProfile->generatePath(
 		{{0_ft, 0_ft, 0_deg},
 		 {2.03_ft, 0_ft, 0_deg}},
-		"move1");
+		"move2.03ft");
 
 	moveProfile->generatePath(
 		{{0_ft, 0_ft, 0_deg},
-		 {0.5_ft, 0_ft, 0_deg}},
-		"move2");
-
-	moveProfile->generatePath(
-		{{0_ft, 0_ft, 0_deg},
-		 {1_ft, 0_ft, 0_deg}},
-		"move3");
+		 {0.9_ft, 0_ft, 0_deg}},
+		"move0.9ft");
 
 	strafeProfile->generatePath(
 		{{0_ft, 0_ft, 0_deg},
@@ -179,12 +178,12 @@ void initialize()
 	strafeProfile->generatePath(
 		{{0_ft, 0_ft, 0_deg},
 		 {1.2_ft, 0_ft, 0_deg}},
-		"strafe3");
+		"strafe1.2ft");
 
 	strafeProfile->generatePath(
 		{{0_ft, 0_ft, 0_deg},
 		 {3.3_ft, 0_ft, 0_deg}},
-		"strafe4");
+		"strafe3.3ft");
 }
 
 /**
@@ -218,7 +217,7 @@ void competition_initialize() {}
  * from where it left off.
  */
 
-/* 
+/*
 	Personal notes:
 		- ft: negative for backward, positive for forward
 		- only forward / backward
@@ -339,9 +338,10 @@ void autonomous()
 	turn(-45);
 
 	// ---- bottom left corner ----
-	strafeProfile->setTarget("strafe3");
+	strafeProfile->setTarget("strafe1.2ft");
 	strafeProfile->waitUntilSettled();
 
+	// - deploy intakes
 	left_intake.move_velocity(-150);
 	right_intake.move_velocity(-150);
 	indexer.move_velocity(-150);
@@ -354,21 +354,23 @@ void autonomous()
 	main_intake.move_velocity(0);
 	pros::delay(50);
 
-	// ---- middle goal (???) ----
+	// - enter goal while intaking
 	left_intake.move_velocity(200);
 	right_intake.move_velocity(200);
 
-	moveProfile->setTarget("move3");
+	moveProfile->setTarget("move0.9ft");
 	moveProfile->waitUntilSettled();
 
 	main_intake.move_velocity(200);
 	indexer.move_velocity(-200);
 	pros::delay(1100);
+
+	// - exit goal
 	left_intake.move_velocity(-200);
 	right_intake.move_velocity(-200);
 	main_intake.move_velocity(200);
 	indexer.move_velocity(-200);
-	moveProfile->setTarget("move3", true);
+	moveProfile->setTarget("move0.9ft", true);
 	moveProfile->waitUntilSettled();
 
 	left_intake.move_velocity(0);
@@ -379,7 +381,7 @@ void autonomous()
 	// ---- center goal ----
 	turn(105);
 
-	moveProfile->setTarget("move1");
+	moveProfile->setTarget("move2.03ft");
 	moveProfile->waitUntilSettled();
 
 	turn(90);
@@ -387,13 +389,13 @@ void autonomous()
 	left_intake.move_velocity(200);
 	right_intake.move_velocity(200);
 
-	strafeProfile->setTarget("strafe4");
+	strafeProfile->setTarget("strafe3.3ft");
 	strafeProfile->waitUntilSettled();
 
 	left_intake.move_velocity(0);
 	right_intake.move_velocity(0);
 
-	strafeProfile->setTarget("strafe4", true);
+	strafeProfile->setTarget("strafe3.3ft", true);
 	strafeProfile->waitUntilSettled();
 }
 
@@ -444,6 +446,9 @@ void opcontrol()
 	ControllerDigital rightarrow{DIGITAL_RIGHT};
 	ControllerButton right_arrow(rightarrow);
 
+	ControllerDigital leftarrow{DIGITAL_LEFT};
+	ControllerButton left_arrow(leftarrow);
+
 	bool detected = false;
 
 	while (true)
@@ -463,7 +468,7 @@ void opcontrol()
 			}
 			else if (right1.isPressed()) // Intake all balls up to line sensor, then only run intakes (RT 1)
 			{
-				if (line_sensor.get_value() > 1500)
+				if (line_sensor.get_value() > 1400)
 				{
 					main_intake.move_velocity(200);
 					indexer.move_velocity(-100);
@@ -478,10 +483,10 @@ void opcontrol()
 					right_intake.move_velocity(150);
 				}
 			}
-			else if (left2.isPressed()) // ONLY outtake stuff inside intakes (LT 2)
+			else if (left2.isPressed()) // Push all balls in tower down (intakes do not run) (LT 2)
 			{
-				left_intake.move_velocity(-200);
-				right_intake.move_velocity(-200);
+				main_intake.move_velocity(-200);
+				indexer.move_velocity(200);
 			}
 			else if (right2.isPressed()) // ONLY shoot balls in tower (no intakes) (RT 2)
 			{
@@ -502,12 +507,15 @@ void opcontrol()
 				left_intake.move_velocity(200);
 				right_intake.move_velocity(200);
 			}
-			else if (a_button.isPressed()) // Eject all balls through intakes (A BTN)
+			else if (a_button.isPressed()) // ONLY outtake stuff inside intakes (A BTN)
 			{
-				main_intake.move_velocity(-200);
-				indexer.move_velocity(200);
 				left_intake.move_velocity(-200);
 				right_intake.move_velocity(-200);
+			}
+			else if (left_arrow.isPressed()) // ONLY run intakes
+			{
+				left_intake.move_velocity(200);
+				right_intake.move_velocity(200);
 			}
 			else // Stop motors that might be running
 			{
@@ -519,6 +527,7 @@ void opcontrol()
 		}
 
 		xModel->xArcade(
+			// "Strafe controls"
 			controller.getAnalog(ControllerAnalog::leftX),	// side to side movement (L Stick)
 			controller.getAnalog(ControllerAnalog::leftY),	// front & back (L Stick)
 			controller.getAnalog(ControllerAnalog::rightX), // rotation (R Stick)
